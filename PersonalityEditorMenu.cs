@@ -49,7 +49,7 @@ public class PersonalityEditorMenu : IClickableMenu
 
     // ── Editing ──
     private string? _editingNpc;
-    private TextBox _textBox = null!;
+    private MultilineTextBox _textBox = null!;
     private bool _textBoxSubscribed;
 
     // ── Layout constants ──
@@ -229,16 +229,13 @@ public class PersonalityEditorMenu : IClickableMenu
 
     private void InitTextBox()
     {
-        _textBox = new TextBox(
-            Game1.content.Load<Texture2D>("LooseSprites\\textBox"),
-            null, Game1.smallFont, Color.Black)
+        _textBox = new MultilineTextBox(
+            new Rectangle(_editArea.X + 12, _editArea.Y + 32, _editArea.Width - 24, 78),
+            Game1.smallFont,
+            Color.Black)
         {
-            X = _editArea.X + 12,
-            Y = _editArea.Y + 32,
-            Width = _editArea.Width - 24,
             Text = "",
-            textLimit = 10000,
-            limitWidth = false
+            TextLimit = 600
         };
     }
 
@@ -417,28 +414,12 @@ public class PersonalityEditorMenu : IClickableMenu
             Utility.drawTextWithShadow(b, _i18n.Get("field.editing", new { npcName = _editingNpc }), Game1.smallFont,
                 new Vector2(_editArea.X + 12, _editArea.Y + 10), Color.White);
 
-            // Text preview (4 lines, word-wrapped) below the label
-            var previewX = _editArea.X + 14;
-            var previewY = _editArea.Y + 34;
-            var previewW = _editArea.Width - 28;
-            var text = _textBox.Text ?? "";
-            var wrapped = Game1.parseText(text, Game1.smallFont, previewW);
-            var lines = wrapped.Split('\n');
-            if (lines.Length > 4)
-                wrapped = string.Join("\n", lines.Take(3)) + "\n...";
-
-            // Preview background
-            var lineH = (int)Game1.smallFont.MeasureString("A").Y;
-            var previewH = lineH * 4 + 8;
-            b.Draw(Game1.staminaRect, new Rectangle(previewX - 2, previewY - 2, previewW + 4, previewH), Color.Black * 0.15f);
-            b.DrawString(Game1.smallFont, wrapped, new Vector2(previewX, previewY), Color.Wheat);
-
-            // TextBox (input line) below preview
-            _textBox.Y = previewY + previewH + 6;
+            // The editor is multiline and word-wraps automatically, so long descriptions
+            // remain visible and can continue past the width of the menu.
             _textBox.Draw(b);
 
-            // Buttons below textbox
-            var btnY = _textBox.Y + 48 + 6;
+            // Buttons below the multiline editor.
+            var btnY = _editArea.Bottom - 48;
             DrawButton(b, GetSaveRect(btnY), _i18n.Get("button.save"), BtnSave);
             DrawButton(b, GetResetRect(btnY), _i18n.Get("button.reset"), BtnReset);
             DrawButton(b, GetCloseRect(btnY), _i18n.Get("button.close"), new Color(120, 100, 80));
@@ -470,11 +451,7 @@ public class PersonalityEditorMenu : IClickableMenu
 
     private int GetButtonY()
     {
-        // Match the btnY computed in DrawEditArea
-        var previewY = _editArea.Y + 34;
-        var lineH = (int)Game1.smallFont.MeasureString("A").Y;
-        var previewH = lineH * 4 + 8;
-        return previewY + previewH + 6 + 48 + 6;
+        return _editArea.Bottom - 48;
     }
 
     private Rectangle GetSaveRect(int btnY) =>
@@ -528,7 +505,7 @@ public class PersonalityEditorMenu : IClickableMenu
             {
                 CommitCurrentEdit();
                 _editingNpc = npcs[i];
-                _textBox.Text = NormalizeForSingleLineEditor(GetCurrentText(npcs[i]));
+                _textBox.Text = GetCurrentText(npcs[i]);
                 SubscribeTextBox();
                 Game1.playSound("smallSelect");
                 return;
@@ -551,7 +528,7 @@ public class PersonalityEditorMenu : IClickableMenu
         if (_editingNpc != null && GetResetRect(btnY).Contains(x, y))
         {
             _store.Set(_editingNpc, null);
-            _textBox.Text = NormalizeForSingleLineEditor(_defaults.GetValueOrDefault(_editingNpc, ""));
+            _textBox.Text = _defaults.GetValueOrDefault(_editingNpc, "");
             _store.Save();
             NotifyReload();
             Game1.playSound("trashcan");
@@ -568,8 +545,9 @@ public class PersonalityEditorMenu : IClickableMenu
             return;
         }
 
-        // Click on textbox area
-        _textBox.Update();
+        // Move the caret when the multiline editor is clicked.
+        if (_editingNpc != null && _textBox.Bounds.Contains(x, y))
+            _textBox.SetCursorFromClick(x, y);
     }
 
     public override void receiveScrollWheelAction(int direction)
@@ -610,23 +588,11 @@ public class PersonalityEditorMenu : IClickableMenu
         return _store.Get(npcName) ?? _defaults.GetValueOrDefault(npcName, "");
     }
 
-    private static string NormalizeForSingleLineEditor(string? text)
-    {
-        if (string.IsNullOrEmpty(text))
-            return "";
-
-        return text
-            .Replace("\r\n", " ", StringComparison.Ordinal)
-            .Replace('\n', ' ')
-            .Replace('\r', ' ')
-            .Trim();
-    }
-
     private void CommitCurrentEdit()
     {
         if (_editingNpc == null) return;
-        var text = NormalizeForSingleLineEditor(_textBox.Text);
-        var def = NormalizeForSingleLineEditor(_defaults.GetValueOrDefault(_editingNpc, ""));
+        var text = _textBox.Text.Trim();
+        var def = _defaults.GetValueOrDefault(_editingNpc, "").Trim();
 
         if (string.IsNullOrWhiteSpace(text) ||
             string.Equals(text, def, StringComparison.OrdinalIgnoreCase))
