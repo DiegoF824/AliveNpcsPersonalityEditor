@@ -2,7 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.GameData.Characters;
 using StardewValley.Menus;
 
 namespace AliveNpcsPersonalityEditor;
@@ -83,16 +82,21 @@ public class PersonalityEditorMenu : IClickableMenu
         _monitor = monitor;
         _i18n = i18n;
 
-        // Build categories dynamically from the API
+        // Build categories from the AliveNpcs compatibility-aware API.
         _categories = BuildCategories(api);
 
         // Cache all defaults and portraits
         foreach (var (_, npcs) in _categories)
             foreach (var npc in npcs)
             {
-                var defaultPersonality = SveFallbackPersonalities.TryGetValue(npc, out var sveFallback)
-                    ? sveFallback
-                    : api.GetDefaultPersonality(npc);
+                var defaultPersonality = api.GetDefaultPersonality(npc);
+                if (SveFallbackPersonalities.TryGetValue(npc, out var sveFallback)
+                    && IsGenericFallback(defaultPersonality, npc))
+                {
+                    // Preserve correct SVE reset text when paired with the first 1.4.3 build,
+                    // whose public API returned the generic fallback for SVE NPCs.
+                    defaultPersonality = sveFallback;
+                }
                 _defaults.TryAdd(npc, defaultPersonality ?? "");
                 try
                 {
@@ -112,16 +116,49 @@ public class PersonalityEditorMenu : IClickableMenu
 
     private static (string Key, string[] Npcs)[] BuildCategories(IAliveNpcsApi api)
     {
-        var vanillaNpcs = api.GetVanillaNpcNames().ToList();
-        var sveNpcs = api.GetSveNpcNames().ToList();
-
-        var knownNames = new HashSet<string>(vanillaNpcs.Concat(sveNpcs), StringComparer.OrdinalIgnoreCase);
-
-        // Discover other mod NPCs from game character data
-        var otherNpcs = new List<string>();
         try
         {
-            var characterData = Game1.content.Load<Dictionary<string, CharacterData>>("Data/Characters");
+            var editableNpcs = api.GetEditableNpcNames()
+                .Where(npc => !string.IsNullOrWhiteSpace(npc))
+                .Select(npc => npc.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            return BuildCategories(api, editableNpcs);
+        }
+        catch (Exception)
+        {
+            // AliveNpcs 1.4.3 exposes the older API shape. Its compatibility gate still
+            // prevents excluded NPCs from using AI; this fallback keeps the editor usable.
+            return BuildLegacyCategories(api);
+        }
+    }
+
+    private static (string Key, string[] Npcs)[] BuildCategories(IAliveNpcsApi api, IEnumerable<string> editableNpcs)
+    {
+        var editable = new HashSet<string>(editableNpcs, StringComparer.OrdinalIgnoreCase);
+        var vanillaSet = new HashSet<string>(api.GetVanillaNpcNames(), StringComparer.OrdinalIgnoreCase);
+        var sveSet = new HashSet<string>(api.GetSveNpcNames(), StringComparer.OrdinalIgnoreCase);
+        var vanillaNpcs = editable.Where(vanillaSet.Contains).OrderBy(npc => npc).ToArray();
+        var sveNpcs = editable.Where(sveSet.Contains).OrderBy(npc => npc).ToArray();
+        var otherNpcs = editable
+            .Where(npc => !vanillaSet.Contains(npc) && !sveSet.Contains(npc))
+            .OrderBy(npc => npc)
+            .ToArray();
+
+        return CreateCategories(vanillaNpcs, sveNpcs, otherNpcs);
+    }
+
+    private static (string Key, string[] Npcs)[] BuildLegacyCategories(IAliveNpcsApi api)
+    {
+        var vanillaNpcs = api.GetVanillaNpcNames().ToArray();
+        var sveNpcs = api.GetSveNpcNames().ToArray();
+        var knownNames = new HashSet<string>(vanillaNpcs.Concat(sveNpcs), StringComparer.OrdinalIgnoreCase);
+        var otherNpcs = new List<string>();
+
+        try
+        {
+            var characterData = Game1.content.Load<Dictionary<string, StardewValley.GameData.Characters.CharacterData>>("Data/Characters");
             otherNpcs = characterData
                 .Where(kvp => !knownNames.Contains(kvp.Key) && !string.Equals(kvp.Value.CanSocialize, "FALSE", StringComparison.OrdinalIgnoreCase))
                 .Select(kvp => kvp.Key)
@@ -130,28 +167,46 @@ public class PersonalityEditorMenu : IClickableMenu
         }
         catch { /* game data not available yet */ }
 
-        var bachelors = vanillaNpcs.Where(n => KnownBachelors.Contains(n)).ToArray();
-        var bachelorettes = vanillaNpcs.Where(n => KnownBachelorettes.Contains(n)).ToArray();
-        var townspeople = vanillaNpcs
+        return CreateCategories(vanillaNpcs, sveNpcs, otherNpcs);
+    }
+
+    private static (string Key, string[] Npcs)[] CreateCategories(
+        IEnumerable<string> vanillaNpcs,
+        IEnumerable<string> sveNpcs,
+        IEnumerable<string> otherNpcs)
+    {
+        var vanilla = vanillaNpcs.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var sve = sveNpcs.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var other = otherNpcs.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var bachelors = vanilla.Where(n => KnownBachelors.Contains(n)).ToArray();
+        var bachelorettes = vanilla.Where(n => KnownBachelorettes.Contains(n)).ToArray();
+        var townspeople = vanilla
             .Where(n => !KnownBachelors.Contains(n) && !KnownBachelorettes.Contains(n) && !KnownSpecial.Contains(n))
             .ToArray();
 
-        // Special: gather from vanilla + other (Leo may come from Data/Characters, not the API)
-        var special = vanillaNpcs.Where(n => KnownSpecial.Contains(n))
-            .Concat(otherNpcs.Where(n => KnownSpecial.Contains(n)))
+        var special = vanilla.Where(n => KnownSpecial.Contains(n))
+            .Concat(other.Where(n => KnownSpecial.Contains(n)))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        otherNpcs = otherNpcs.Where(n => !KnownSpecial.Contains(n)).ToList();
+        other = other.Where(n => !KnownSpecial.Contains(n)).ToList();
 
         var categories = new List<(string Key, string[] Npcs)>();
         if (bachelors.Length > 0) categories.Add(("page.bachelors", bachelors));
         if (bachelorettes.Length > 0) categories.Add(("page.bachelorettes", bachelorettes));
         if (townspeople.Length > 0) categories.Add(("page.townspeople", townspeople));
         if (special.Length > 0) categories.Add(("page.special", special));
-        if (sveNpcs.Count > 0) categories.Add(("page.sve", sveNpcs.ToArray()));
-        if (otherNpcs.Count > 0) categories.Add(("page.other", otherNpcs.ToArray()));
+        if (sve.Length > 0) categories.Add(("page.sve", sve));
+        if (other.Count > 0) categories.Add(("page.other", other.ToArray()));
 
         return categories.ToArray();
+    }
+
+    private static bool IsGenericFallback(string? personality, string npcName)
+    {
+        return string.Equals(
+            personality?.Trim(),
+            $"A villager in Stardew Valley named {npcName}. Friendly and part of the community.",
+            StringComparison.Ordinal);
     }
 
     private void RecalculateLayout()
@@ -536,8 +591,14 @@ public class PersonalityEditorMenu : IClickableMenu
 
     public override void gameWindowSizeChanged(Rectangle oldBounds, Rectangle newBounds)
     {
+        var text = _textBox?.Text ?? "";
+        var resubscribe = _textBoxSubscribed;
+        UnsubscribeTextBox();
         RecalculateLayout();
         InitTextBox();
+        _textBox!.Text = text;
+        if (_editingNpc != null && resubscribe)
+            SubscribeTextBox();
     }
 
     // ═══════════════════════════════════════════════════════════

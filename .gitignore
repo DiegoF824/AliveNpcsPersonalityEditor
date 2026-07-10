@@ -63,3 +63,5 @@ node_modules/
 *~
 .env
 .env.local
+descricao nexus.txt
+NEXUS_DESCRIPTION.bbcode

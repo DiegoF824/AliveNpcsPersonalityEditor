@@ -32,9 +32,24 @@ public sealed class ModEntry : Mod
     {
         _api = Helper.ModRegistry.GetApi<IAliveNpcsApi>("Lucas.AliveNpcs");
         if (_api is null)
+        {
             Monitor.Log("AliveNpcs not found — personality editor cannot function.", LogLevel.Error);
-        else
-            Monitor.Log($"Personality Editor ready. Press {_config.OpenEditorKey} to open.", LogLevel.Info);
+            return;
+        }
+
+        try
+        {
+            if (!_api.RegisterCustomPersonalityFile(_store.FilePath))
+                Monitor.Log("AliveNpcs did not accept the custom personalities file path. The default mod-folder layout is required.", LogLevel.Warn);
+        }
+        catch (Exception ex)
+        {
+            // AliveNpcs 1.4.3 already reads the standard release folder directly.
+            // Keep that release compatible while newer AliveNpcs versions register any folder name.
+            Monitor.Log($"AliveNpcs uses the legacy personality-editor file lookup ({ex.GetType().Name}); using the standard release folder.", LogLevel.Trace);
+        }
+
+        Monitor.Log($"Personality Editor ready. Press {_config.OpenEditorKey} to open.", LogLevel.Info);
     }
 
     private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)

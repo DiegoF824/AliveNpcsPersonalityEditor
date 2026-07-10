@@ -19,6 +19,9 @@ public sealed class PersonalityStore
     /// <summary>Current custom overrides (NPC name -> personality text). Only contains edited NPCs.</summary>
     public Dictionary<string, string> Overrides { get; private set; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Absolute path of the data file consumed by AliveNpcs.</summary>
+    public string FilePath => _filePath;
+
     public PersonalityStore(string modDirectoryPath, IMonitor monitor)
     {
         _filePath = Path.Combine(modDirectoryPath, "custom_personalities.json");
@@ -37,9 +40,10 @@ public sealed class PersonalityStore
         {
             var json = File.ReadAllText(_filePath);
             var data = JsonSerializer.Deserialize<CustomPersonalityData>(json, JsonOptions);
-            Overrides = data?.Personalities != null
-                ? new Dictionary<string, string>(data.Personalities, StringComparer.OrdinalIgnoreCase)
-                : new(StringComparer.OrdinalIgnoreCase);
+            Overrides = data?.Personalities?
+                .Where(entry => !string.IsNullOrWhiteSpace(entry.Key) && !string.IsNullOrWhiteSpace(entry.Value))
+                .ToDictionary(entry => entry.Key.Trim(), entry => entry.Value.Trim(), StringComparer.OrdinalIgnoreCase)
+                ?? new(StringComparer.OrdinalIgnoreCase);
             _monitor.Log($"Loaded {Overrides.Count} custom personality override(s).", LogLevel.Info);
         }
         catch (Exception ex)
@@ -60,11 +64,14 @@ public sealed class PersonalityStore
                 Personalities = new Dictionary<string, string>(Overrides, StringComparer.OrdinalIgnoreCase)
             };
             var json = JsonSerializer.Serialize(data, JsonOptions);
-            File.WriteAllText(_filePath, json);
+            var tempPath = _filePath + ".tmp";
+            File.WriteAllText(tempPath, json);
+            File.Move(tempPath, _filePath, overwrite: true);
             _monitor.Log($"Saved {Overrides.Count} custom personality override(s).", LogLevel.Info);
         }
         catch (Exception ex)
         {
+            TryDeleteTempFile();
             _monitor.Log($"Failed to save custom personalities: {ex.Message}", LogLevel.Error);
         }
     }
@@ -85,4 +92,18 @@ public sealed class PersonalityStore
     }
 
     public bool HasOverride(string npcName) => Overrides.ContainsKey(npcName);
+
+    private void TryDeleteTempFile()
+    {
+        try
+        {
+            var tempPath = _filePath + ".tmp";
+            if (File.Exists(tempPath))
+                File.Delete(tempPath);
+        }
+        catch
+        {
+            // The original file is still intact; a future save can replace the temp file.
+        }
+    }
 }
