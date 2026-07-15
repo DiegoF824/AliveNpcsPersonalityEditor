@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
@@ -8,16 +9,20 @@ namespace AliveNpcsPersonalityEditor;
 
 public class PersonalityEditorMenu : IClickableMenu
 {
-    // ── Data ──
     private readonly PersonalityStore _store;
+    private readonly PresetStore _presetStore;
     private readonly IAliveNpcsApi _api;
+    private readonly EditorConfig _config;
+    private readonly GalleryService? _galleryService;
     private readonly IMonitor _monitor;
     private readonly ITranslationHelper _i18n;
     private readonly Dictionary<string, string> _defaults = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture2D?> _portraits = new(StringComparer.OrdinalIgnoreCase);
 
-    // ── Categories (built dynamically from API) ──
     private readonly (string Key, string[] Npcs)[] _categories;
+    private int _activeTab;
+    private int _topLevelTab; // 0 = Personalities, 1 = Gallery
+    private GalleryPane? _galleryPane;
 
     private static readonly HashSet<string> KnownBachelors = new(StringComparer.OrdinalIgnoreCase)
         { "Alex", "Elliott", "Harvey", "Sam", "Sebastian", "Shane" };
@@ -41,51 +46,43 @@ public class PersonalityEditorMenu : IClickableMenu
         ["Morgan"] = "A magical child with curious and innocent worldview. Imaginative, playful, and prone to wonder.",
         ["Apples"] = "A mysterious Junimo-like being with whimsical and curious mannerisms, expressing emotions in a playful and unusual way.",
     };
-    private int _activeTab;
 
-    // ── Scrolling ──
     private int _scrollY;
     private int _maxScroll;
 
-    // ── Editing ──
-    private string? _editingNpc;
-    private MultilineTextBox _textBox = null!;
-    private bool _textBoxSubscribed;
-
-    // ── Layout constants ──
     private const int CardH = 170;
     private const int CardGap = 10;
     private const int PortraitSrc = 64;
     private const int PortraitDraw = 108;
     private const int TabH = 44;
-    private const int EditAreaH = 164;
     private const int Pad = 16;
 
-    // ── Computed rects ──
     private Rectangle _contentArea;
-    private Rectangle _editArea;
 
-    // ── Colors ──
-    private static readonly Color CardBg = new(222, 195, 153);       // light brown
-    private static readonly Color CardSelectedBg = new(242, 220, 180);
+    private static readonly Color CardBg = new(222, 195, 153);
     private static readonly Color TabActive = new(170, 120, 60);
     private static readonly Color TabInactive = new(200, 170, 130);
-    private static readonly Color EditBg = new(160, 125, 80);
-    private static readonly Color BtnSave = new(90, 160, 70);
-    private static readonly Color BtnReset = new(190, 90, 70);
 
-    public PersonalityEditorMenu(PersonalityStore store, IAliveNpcsApi api, IMonitor monitor, ITranslationHelper i18n)
+    public PersonalityEditorMenu(
+        PersonalityStore store,
+        PresetStore presetStore,
+        IAliveNpcsApi api,
+        EditorConfig config,
+        GalleryService? galleryService,
+        IMonitor monitor,
+        ITranslationHelper i18n)
         : base(0, 0, 0, 0)
     {
         _store = store;
+        _presetStore = presetStore;
         _api = api;
+        _config = config;
+        _galleryService = galleryService;
         _monitor = monitor;
         _i18n = i18n;
 
-        // Build categories from the AliveNpcs compatibility-aware API.
         _categories = BuildCategories(api);
 
-        // Cache all defaults and portraits
         foreach (var (_, npcs) in _categories)
             foreach (var npc in npcs)
             {
@@ -93,8 +90,6 @@ public class PersonalityEditorMenu : IClickableMenu
                 if (SveFallbackPersonalities.TryGetValue(npc, out var sveFallback)
                     && IsGenericFallback(defaultPersonality, npc))
                 {
-                    // Preserve correct SVE reset text when paired with the first 1.4.3 build,
-                    // whose public API returned the generic fallback for SVE NPCs.
                     defaultPersonality = sveFallback;
                 }
                 _defaults.TryAdd(npc, defaultPersonality ?? "");
@@ -111,7 +106,13 @@ public class PersonalityEditorMenu : IClickableMenu
             }
 
         RecalculateLayout();
-        InitTextBox();
+
+        if (_config.GalleryEnabled && _galleryService != null)
+        {
+            _galleryPane = new GalleryPane(
+                _galleryService, _store, _portraits, _i18n, _monitor, GetGalleryContentArea,
+                _config.GalleryServerUrl, _presetStore);
+        }
     }
 
     private static (string Key, string[] Npcs)[] BuildCategories(IAliveNpcsApi api)
@@ -128,8 +129,6 @@ public class PersonalityEditorMenu : IClickableMenu
         }
         catch (Exception)
         {
-            // AliveNpcs 1.4.3 exposes the older API shape. Its compatibility gate still
-            // prevents excluded NPCs from using AI; this fallback keeps the editor usable.
             return BuildLegacyCategories(api);
         }
     }
@@ -154,6 +153,7 @@ public class PersonalityEditorMenu : IClickableMenu
         var vanillaNpcs = api.GetVanillaNpcNames().ToArray();
         var sveNpcs = api.GetSveNpcNames().ToArray();
         var knownNames = new HashSet<string>(vanillaNpcs.Concat(sveNpcs), StringComparer.OrdinalIgnoreCase);
+
         var otherNpcs = new List<string>();
 
         try
@@ -165,7 +165,7 @@ public class PersonalityEditorMenu : IClickableMenu
                 .OrderBy(n => n)
                 .ToList();
         }
-        catch { /* game data not available yet */ }
+        catch { }
 
         return CreateCategories(vanillaNpcs, sveNpcs, otherNpcs);
     }
@@ -221,38 +221,18 @@ public class PersonalityEditorMenu : IClickableMenu
         var innerX = xPositionOnScreen + 24;
         var innerW = width - 48;
         var tabsBottom = yPositionOnScreen + 68 + TabH;
-        var contentH = height - 68 - TabH - EditAreaH - 32;
+        var contentH = height - 68 - TabH - 32;
 
         _contentArea = new Rectangle(innerX, tabsBottom + 4, innerW, contentH);
-        _editArea = new Rectangle(innerX, _contentArea.Bottom + 4, innerW, EditAreaH);
     }
 
-    private void InitTextBox()
+    private Rectangle GetGalleryContentArea()
     {
-        _textBox = new MultilineTextBox(
-            new Rectangle(_editArea.X + 12, _editArea.Y + 32, _editArea.Width - 24, 78),
-            Game1.smallFont,
-            Color.Black)
-        {
-            Text = "",
-            TextLimit = 600
-        };
-    }
-
-    private void SubscribeTextBox()
-    {
-        if (!_textBoxSubscribed)
-        {
-            Game1.keyboardDispatcher.Subscriber = _textBox;
-            _textBoxSubscribed = true;
-        }
-    }
-
-    private void UnsubscribeTextBox()
-    {
-        if (_textBoxSubscribed && Game1.keyboardDispatcher.Subscriber == _textBox)
-            Game1.keyboardDispatcher.Subscriber = null;
-        _textBoxSubscribed = false;
+        var innerX = xPositionOnScreen + 24;
+        var innerW = width - 48;
+        var galleryTop = yPositionOnScreen + 12;
+        var galleryH = height - 24;
+        return new Rectangle(innerX, galleryTop, innerW, galleryH);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -261,20 +241,58 @@ public class PersonalityEditorMenu : IClickableMenu
 
     public override void draw(SpriteBatch b)
     {
-        // Dim overlay
         b.Draw(Game1.fadeToBlackRect,
             new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height),
             Color.Black * 0.75f);
 
-        // Menu frame
         drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
             xPositionOnScreen, yPositionOnScreen, width, height, Color.White);
 
-        DrawTitle(b);
-        DrawTabs(b);
-        DrawCards(b);
-        DrawEditArea(b);
+        DrawTopLevelTabs(b);
+
+        if (_topLevelTab == 0)
+        {
+            DrawTitle(b);
+            DrawTabs(b);
+            DrawCards(b);
+        }
+        else if (_topLevelTab == 1 && _galleryPane != null)
+        {
+            _galleryPane.Draw(b);
+        }
+
         drawMouse(b);
+    }
+
+    private void DrawTopLevelTabs(SpriteBatch b)
+    {
+        var tabH = 36;
+        var tabY = yPositionOnScreen - tabH + 4;
+        var tabW = 200;
+        var labels = new[] { _i18n.Get("tab.personalities"), _i18n.Get("tab.gallery") };
+        var startX = xPositionOnScreen + 20;
+
+        for (int i = 0; i < labels.Length; i++)
+        {
+            var rect = new Rectangle(startX + i * (tabW + 6), tabY, tabW, tabH);
+            var active = i == _topLevelTab;
+            var color = active ? TabActive : TabInactive;
+
+            drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
+                rect.X, rect.Y, rect.Width, rect.Height, color);
+
+            if (active)
+            {
+                b.Draw(Game1.menuTexture,
+                    new Rectangle(rect.X, rect.Bottom - 6, rect.Width, 6),
+                    new Rectangle(0, 256 + 54, 60, 6), color);
+            }
+
+            var labelSize = Game1.smallFont.MeasureString(labels[i]);
+            Utility.drawTextWithShadow(b, labels[i], Game1.smallFont,
+                new Vector2(rect.X + (rect.Width - labelSize.X) / 2f, rect.Y + (rect.Height - labelSize.Y) / 2f),
+                active ? Color.White : Color.Wheat);
+        }
     }
 
     private void DrawTitle(SpriteBatch b)
@@ -316,7 +334,6 @@ public class PersonalityEditorMenu : IClickableMenu
         _maxScroll = Math.Max(0, totalH - _contentArea.Height);
         _scrollY = Math.Clamp(_scrollY, 0, _maxScroll);
 
-        // Scissor clip for the content area
         var prevScissor = b.GraphicsDevice.ScissorRectangle;
         var prevRasterizer = b.GraphicsDevice.RasterizerState;
         b.End();
@@ -335,25 +352,24 @@ public class PersonalityEditorMenu : IClickableMenu
             DrawSingleCard(b, npc, _contentArea.X, cardY, _contentArea.Width);
         }
 
-        // Restore
         b.End();
         b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, prevRasterizer);
         b.GraphicsDevice.ScissorRectangle = prevScissor;
 
-        // Scrollbar
         if (_maxScroll > 0)
             DrawScrollbar(b);
     }
 
     private void DrawSingleCard(SpriteBatch b, string npc, int cx, int cy, int cw)
     {
-        var isSelected = _editingNpc == npc;
-        var hasOverride = _store.HasOverride(npc);
-        var bg = isSelected ? CardSelectedBg : CardBg;
+        var entry = _store.Get(npc);
+        var hasOverride = entry != null && entry.HasAnyField;
+        var hasCharData = entry?.HasCharacterDataOverride == true;
+        var hasPersonalityOverride = entry != null && !string.IsNullOrWhiteSpace(entry.CanonicalPersonality);
+        var hasSupplementaryOnly = entry != null && entry.HasOnlySupplementaryFields;
 
-        // Card background
         drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            cx, cy, cw, CardH, bg);
+            cx, cy, cw, CardH, CardBg);
 
         // ── Portrait (left side) ──
         var portraitX = cx + Pad;
@@ -368,7 +384,9 @@ public class PersonalityEditorMenu : IClickableMenu
                 Color.Black * 0.1f);
 
         // ── Name below portrait ──
-        var nameStr = hasOverride ? $"{npc} *" : npc;
+        string indicator = hasPersonalityOverride ? " *" : (hasSupplementaryOnly ? " +" : "");
+        if (hasCharData) indicator += " CD";
+        var nameStr = hasOverride ? $"{npc}{indicator}" : npc;
         var nameColor = hasOverride ? new Color(70, 140, 50) : Color.SaddleBrown;
         var nameSize = Game1.smallFont.MeasureString(nameStr);
         var nameX = portraitX + (PortraitDraw - nameSize.X) / 2f;
@@ -378,10 +396,9 @@ public class PersonalityEditorMenu : IClickableMenu
         // ── Personality text (right of portrait) ──
         var textX = portraitX + PortraitDraw + Pad;
         var textW = cw - PortraitDraw - Pad * 3 - 12;
-        var personality = GetCurrentText(npc);
+        var personality = GetCurrentPersonalityPreview(npc);
         var wrapped = Game1.parseText(personality, Game1.smallFont, textW);
 
-        // Clamp lines so text doesn't overflow card
         var lines = wrapped.Split('\n');
         var maxLines = (CardH - 24) / (int)Game1.smallFont.MeasureString("A").Y;
         if (lines.Length > maxLines)
@@ -397,71 +414,13 @@ public class PersonalityEditorMenu : IClickableMenu
         var thumbH = Math.Max(30, barH * barH / (barH + _maxScroll));
         var thumbY = _contentArea.Y + (int)((float)_scrollY / _maxScroll * (barH - thumbH));
 
-        // Track
         b.Draw(Game1.staminaRect, new Rectangle(barX, _contentArea.Y, 6, barH), Color.Black * 0.15f);
-        // Thumb
         b.Draw(Game1.staminaRect, new Rectangle(barX, thumbY, 6, thumbH), Color.SaddleBrown * 0.6f);
     }
 
-    private void DrawEditArea(SpriteBatch b)
-    {
-        drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            _editArea.X, _editArea.Y, _editArea.Width, _editArea.Height, EditBg);
-
-        if (_editingNpc != null)
-        {
-            // Label
-            Utility.drawTextWithShadow(b, _i18n.Get("field.editing", new { npcName = _editingNpc }), Game1.smallFont,
-                new Vector2(_editArea.X + 12, _editArea.Y + 10), Color.White);
-
-            // The editor is multiline and word-wraps automatically, so long descriptions
-            // remain visible and can continue past the width of the menu.
-            _textBox.Draw(b);
-
-            // Buttons below the multiline editor.
-            var btnY = _editArea.Bottom - 48;
-            DrawButton(b, GetSaveRect(btnY), _i18n.Get("button.save"), BtnSave);
-            DrawButton(b, GetResetRect(btnY), _i18n.Get("button.reset"), BtnReset);
-            DrawButton(b, GetCloseRect(btnY), _i18n.Get("button.close"), new Color(120, 100, 80));
-        }
-        else
-        {
-            Utility.drawTextWithShadow(b, _i18n.Get("editor.select_prompt"),
-                Game1.smallFont, new Vector2(_editArea.X + 12, _editArea.Y + 60), Color.Wheat);
-
-            // Close button
-            var btnY = _editArea.Bottom - 52;
-            DrawButton(b, GetCloseRect(btnY), _i18n.Get("button.close"), new Color(120, 100, 80));
-        }
-    }
-
-    private static void DrawButton(SpriteBatch b, Rectangle rect, string label, Color bg)
-    {
-        drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            rect.X, rect.Y, rect.Width, rect.Height, bg);
-        var size = Game1.smallFont.MeasureString(label);
-        Utility.drawTextWithShadow(b, label, Game1.smallFont,
-            new Vector2(rect.X + (rect.Width - size.X) / 2f, rect.Y + (rect.Height - size.Y) / 2f),
-            Color.White);
-    }
-
     // ═══════════════════════════════════════════════════════════
-    //  BUTTON RECTS
+    //  INPUT
     // ═══════════════════════════════════════════════════════════
-
-    private int GetButtonY()
-    {
-        return _editArea.Bottom - 48;
-    }
-
-    private Rectangle GetSaveRect(int btnY) =>
-        new(_editArea.Right - 290, btnY, 80, 40);
-
-    private Rectangle GetResetRect(int btnY) =>
-        new(_editArea.Right - 195, btnY, 80, 40);
-
-    private Rectangle GetCloseRect(int btnY) =>
-        new(_editArea.Right - 100, btnY, 80, 40);
 
     private Rectangle GetTabRect(int i)
     {
@@ -475,141 +434,127 @@ public class PersonalityEditorMenu : IClickableMenu
         return new Rectangle(_contentArea.X, cardY, _contentArea.Width, CardH);
     }
 
-    // ═══════════════════════════════════════════════════════════
-    //  INPUT
-    // ═══════════════════════════════════════════════════════════
-
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
-        // Tabs
-        for (int i = 0; i < _categories.Length; i++)
+        // Top-level tabs (above the window)
+        var tabH = 36;
+        var tabY = yPositionOnScreen - tabH + 4;
+        var tabW = 200;
+        var startX = xPositionOnScreen + 20;
+        for (int i = 0; i < 2; i++)
         {
-            if (GetTabRect(i).Contains(x, y))
+            var rect = new Rectangle(startX + i * (tabW + 6), tabY, tabW, tabH);
+            if (rect.Contains(x, y))
             {
-                CommitCurrentEdit();
-                _activeTab = i;
+                _topLevelTab = i;
                 _scrollY = 0;
-                _editingNpc = null;
-                UnsubscribeTextBox();
                 Game1.playSound("smallSelect");
                 return;
             }
         }
 
-        // Cards
+        if (_topLevelTab == 1 && _galleryPane != null)
+        {
+            _galleryPane.receiveLeftClick(x, y);
+            return;
+        }
+
+        // NPC category tabs (Personalities tab only)
+        for (int i = 0; i < _categories.Length; i++)
+        {
+            if (GetTabRect(i).Contains(x, y))
+            {
+                _activeTab = i;
+                _scrollY = 0;
+                Game1.playSound("smallSelect");
+                return;
+            }
+        }
+
+        // Cards — open modal on click
         var npcs = _categories[_activeTab].Npcs;
         for (int i = 0; i < npcs.Length; i++)
         {
             var cardRect = GetCardRect(i);
             if (cardRect.Contains(x, y) && _contentArea.Contains(x, y))
             {
-                CommitCurrentEdit();
-                _editingNpc = npcs[i];
-                _textBox.Text = GetCurrentText(npcs[i]);
-                SubscribeTextBox();
+                OpenEditModal(npcs[i]);
                 Game1.playSound("smallSelect");
                 return;
             }
         }
+    }
 
-        var btnY = _editingNpc != null ? GetButtonY() : _editArea.Bottom - 52;
+    private void OpenEditModal(string npcName)
+    {
+        var portrait = _portraits.GetValueOrDefault(npcName);
+        var defaultPersonality = _defaults.GetValueOrDefault(npcName, "");
 
-        // Save button
-        if (_editingNpc != null && GetSaveRect(btnY).Contains(x, y))
-        {
-            CommitCurrentEdit();
-            _store.Save();
-            NotifyReload();
-            Game1.playSound("coin");
-            return;
-        }
+        var modal = new PersonalityEditModal(
+            npcName,
+            defaultPersonality,
+            portrait,
+            _store,
+            _presetStore,
+            _api,
+            _config,
+            _galleryService,
+            _monitor,
+            _i18n,
+            OnModalClosed);
 
-        // Reset button
-        if (_editingNpc != null && GetResetRect(btnY).Contains(x, y))
-        {
-            _store.Set(_editingNpc, null);
-            _textBox.Text = _defaults.GetValueOrDefault(_editingNpc, "");
-            _store.Save();
-            NotifyReload();
-            Game1.playSound("trashcan");
-            return;
-        }
+        Game1.activeClickableMenu = modal;
+    }
 
-        // Close button
-        if (GetCloseRect(btnY).Contains(x, y))
-        {
-            CommitCurrentEdit();
-            _store.Save();
-            NotifyReload();
-            exitThisMenu();
-            return;
-        }
-
-        // Move the caret when the multiline editor is clicked.
-        if (_editingNpc != null && _textBox.Bounds.Contains(x, y))
-            _textBox.SetCursorFromClick(x, y);
+    private void OnModalClosed()
+    {
+        Game1.activeClickableMenu = this;
     }
 
     public override void receiveScrollWheelAction(int direction)
     {
+        if (_topLevelTab == 1 && _galleryPane != null)
+        {
+            _galleryPane.receiveScrollWheelAction(direction);
+            return;
+        }
+
         _scrollY -= direction;
         _scrollY = Math.Clamp(_scrollY, 0, Math.Max(0, _maxScroll));
     }
 
-    public override void receiveKeyPress(Microsoft.Xna.Framework.Input.Keys key)
+    public override void receiveKeyPress(Keys key)
     {
-        if (key == Microsoft.Xna.Framework.Input.Keys.Escape)
+        if (_topLevelTab == 1 && _galleryPane != null)
         {
-            CommitCurrentEdit();
-            _store.Save();
-            NotifyReload();
+            _galleryPane.receiveKeyPress(key);
+            return;
+        }
+
+        if (key == Keys.Escape)
+        {
             exitThisMenu();
         }
     }
 
     public override void gameWindowSizeChanged(Rectangle oldBounds, Rectangle newBounds)
     {
-        var text = _textBox?.Text ?? "";
-        var resubscribe = _textBoxSubscribed;
-        UnsubscribeTextBox();
         RecalculateLayout();
-        InitTextBox();
-        _textBox!.Text = text;
-        if (_editingNpc != null && resubscribe)
-            SubscribeTextBox();
     }
 
     // ═══════════════════════════════════════════════════════════
     //  HELPERS
     // ═══════════════════════════════════════════════════════════
 
-    private string GetCurrentText(string npcName)
+    private string GetCurrentPersonalityPreview(string npcName)
     {
-        return _store.Get(npcName) ?? _defaults.GetValueOrDefault(npcName, "");
-    }
-
-    private void CommitCurrentEdit()
-    {
-        if (_editingNpc == null) return;
-        var text = _textBox.Text.Trim();
-        var def = _defaults.GetValueOrDefault(_editingNpc, "").Trim();
-
-        if (string.IsNullOrWhiteSpace(text) ||
-            string.Equals(text, def, StringComparison.OrdinalIgnoreCase))
-            _store.Set(_editingNpc, null);
-        else
-            _store.Set(_editingNpc, text);
-    }
-
-    private void NotifyReload()
-    {
-        try { _api.ReloadCustomPersonalities(); }
-        catch (Exception ex) { _monitor.Log($"Reload notify failed: {ex.Message}", LogLevel.Warn); }
-    }
-
-    protected override void cleanupBeforeExit()
-    {
-        UnsubscribeTextBox();
-        base.cleanupBeforeExit();
+        var entry = _store.Get(npcName);
+        if (entry != null && entry.HasAnyField)
+        {
+            if (!string.IsNullOrWhiteSpace(entry.CanonicalPersonality))
+                return entry.CanonicalPersonality;
+            return _defaults.GetValueOrDefault(npcName, "");
+        }
+        return _defaults.GetValueOrDefault(npcName, "");
     }
 }

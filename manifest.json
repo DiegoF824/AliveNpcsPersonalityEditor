@@ -1,17 +1,22 @@
 {
-    "Name": "AliveNpcs Personality Editor",
-    "Author": "Lucas Gatica",
-    "Version": "1.1.0",
-    "Description": "In-game editor for NPC personality overrides used by AliveNpcs.",
-    "UniqueID": "Lucas.AliveNpcsPersonalityEditor",
-    "EntryDll": "AliveNpcsPersonalityEditor.dll",
-    "MinimumApiVersion": "4.0.0",
-    "Dependencies": [
-        {
-            "UniqueID": "Lucas.AliveNpcs",
-            "MinimumVersion": "1.4.3",
-            "IsRequired": true
-        }
-    ],
-    "UpdateKeys": []
+  "Name": "AliveNpcs Personality Manager",
+  "Author": "Lucas Gatica",
+  "Version": "2.1.0",
+  "Description": "In-game manager for NPC personality overrides, lore, social tags, and character data used by AliveNpcs. Share presets via community gallery.",
+  "UniqueID": "Lucas.AliveNpcsPersonalityEditor",
+  "EntryDll": "AliveNpcsPersonalityEditor.dll",
+  "MinimumApiVersion": "4.0.0",
+  "Dependencies": [
+    {
+      "UniqueID": "Lucas.AliveNpcs",
+      "MinimumVersion": "1.4.4",
+      "IsRequired": true
+    },
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "MinimumVersion": "1.12.0",
+      "IsRequired": false
+    }
+  ],
+  "UpdateKeys": []
 }

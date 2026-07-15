@@ -2,7 +2,7 @@ namespace AliveNpcsPersonalityEditor;
 
 /// <summary>
 /// Public API exposed by AliveNpcs for inter-mod communication.
-/// The editor uses this to fetch default personality data.
+/// The editor uses this to fetch default personality data and register overrides.
 /// </summary>
 public interface IAliveNpcsApi
 {
@@ -24,8 +24,8 @@ public interface IAliveNpcsApi
     /// <summary>Check if a personality override is active for this NPC.</summary>
     bool HasCustomPersonality(string npcName);
 
-    /// <summary>Register this editor instance's data file with AliveNpcs.</summary>
-    bool RegisterCustomPersonalityFile(string filePath);
+    /// <summary>Register this editor instance's overrides directory with AliveNpcs.</summary>
+    bool RegisterCustomPersonalityDirectory(string dirPath);
 
     /// <summary>Reload custom personalities from disk (called after editor saves).</summary>
     void ReloadCustomPersonalities();
