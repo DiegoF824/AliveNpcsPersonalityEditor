@@ -30,6 +30,8 @@ internal sealed class MultilineTextBox : IKeyboardSubscriber
     }
     public int TextLimit { get; set; } = 100000;
     public bool Selected { get; set; }
+    public Color BackgroundColor { get; set; } = new(255, 248, 232);
+    public Color BorderColor { get; set; } = new(125, 60, 40);
 
     public void Scroll(int direction)
     {
@@ -74,29 +76,32 @@ internal sealed class MultilineTextBox : IKeyboardSubscriber
 
         var firstLine = _scrollLine;
 
-        b.Draw(Game1.staminaRect, Bounds, Color.Black * 0.18f);
-        b.Draw(Game1.staminaRect, new Rectangle(Bounds.X, Bounds.Y, Bounds.Width, 1), Color.Wheat * 0.75f);
-        b.Draw(Game1.staminaRect, new Rectangle(Bounds.X, Bounds.Bottom - 1, Bounds.Width, 1), Color.Wheat * 0.75f);
+        b.Draw(Game1.staminaRect, Bounds, BackgroundColor);
+        var border = Selected ? Color.Goldenrod : BorderColor;
+        b.Draw(Game1.staminaRect, new Rectangle(Bounds.X, Bounds.Y, Bounds.Width, 3), border);
+        b.Draw(Game1.staminaRect, new Rectangle(Bounds.X, Bounds.Bottom - 3, Bounds.Width, 3), border);
+        b.Draw(Game1.staminaRect, new Rectangle(Bounds.X, Bounds.Y, 3, Bounds.Height), border);
+        b.Draw(Game1.staminaRect, new Rectangle(Bounds.Right - 3, Bounds.Y, 3, Bounds.Height), border);
 
         for (var i = firstLine; i < lines.Count && i < firstLine + visibleLines; i++)
         {
             var line = lines[i];
             var display = Text.Substring(line.Start, line.Length).TrimEnd();
-            var y = Bounds.Y + 4 + (i - firstLine) * lineHeight;
-            b.DrawString(_font, display, new Vector2(Bounds.X + 4, y), _textColor);
+            var y = Bounds.Y + 7 + (i - firstLine) * lineHeight;
+            b.DrawString(_font, display, new Vector2(Bounds.X + 8, y), _textColor);
         }
 
-        if (!Selected || DateTime.UtcNow.Millisecond >= 500)
-            return;
-
-        var caretLine = FindCursorLine(lines);
-        var curLine = Math.Clamp(caretLine, firstLine, firstLine + visibleLines - 1);
-        var current = lines[curLine];
-        var charactersBeforeCursor = Math.Clamp(_cursor - current.Start, 0, current.Length);
-        var before = Text.Substring(current.Start, charactersBeforeCursor).TrimEnd();
-        var caretX = Bounds.X + 4 + (int)_font.MeasureString(before).X;
-        var caretY = Bounds.Y + 4 + (curLine - firstLine) * lineHeight;
-        b.Draw(Game1.staminaRect, new Rectangle(caretX, caretY, 2, lineHeight), _textColor);
+        if (Selected && DateTime.UtcNow.Millisecond < 500)
+        {
+            var caretLine = FindCursorLine(lines);
+            var curLine = Math.Clamp(caretLine, firstLine, firstLine + visibleLines - 1);
+            var current = lines[curLine];
+            var charactersBeforeCursor = Math.Clamp(_cursor - current.Start, 0, current.Length);
+            var before = Text.Substring(current.Start, charactersBeforeCursor).TrimEnd();
+            var caretX = Bounds.X + 8 + (int)_font.MeasureString(before).X;
+            var caretY = Bounds.Y + 7 + (curLine - firstLine) * lineHeight;
+            b.Draw(Game1.staminaRect, new Rectangle(caretX, caretY, 2, lineHeight), _textColor);
+        }
 
         // Draw scrollbar if content overflows
         if (lines.Count > visibleLines)
@@ -255,7 +260,7 @@ internal sealed class MultilineTextBox : IKeyboardSubscriber
     private List<WrappedLine> GetWrappedLines()
     {
         var lines = new List<WrappedLine>();
-        var maxWidth = Bounds.Width - 8;
+        var maxWidth = Bounds.Width - 16;
         var start = 0;
 
         while (start < Text.Length)

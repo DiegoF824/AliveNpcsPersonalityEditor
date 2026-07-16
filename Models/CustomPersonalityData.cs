@@ -9,6 +9,8 @@ public sealed class NpcOverrideEntry
 
     public string CanonicalPersonality { get; set; } = "";
 
+    public string Appearance { get; set; } = "";
+
     public string Lore { get; set; } = "";
 
     public string SocialTags { get; set; } = "";
@@ -20,6 +22,7 @@ public sealed class NpcOverrideEntry
     [JsonIgnore]
     public bool HasAnyField =>
         !string.IsNullOrWhiteSpace(CanonicalPersonality)
+        || !string.IsNullOrWhiteSpace(Appearance)
         || !string.IsNullOrWhiteSpace(Lore)
         || !string.IsNullOrWhiteSpace(SocialTags)
         || !string.IsNullOrWhiteSpace(SubmissionCredit)
@@ -28,7 +31,8 @@ public sealed class NpcOverrideEntry
     [JsonIgnore]
     public bool HasOnlySupplementaryFields =>
         string.IsNullOrWhiteSpace(CanonicalPersonality)
-        && (!string.IsNullOrWhiteSpace(Lore)
+        && (!string.IsNullOrWhiteSpace(Appearance)
+            || !string.IsNullOrWhiteSpace(Lore)
             || !string.IsNullOrWhiteSpace(SocialTags)
             || !string.IsNullOrWhiteSpace(SubmissionCredit));
 

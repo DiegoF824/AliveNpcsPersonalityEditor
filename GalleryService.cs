@@ -84,6 +84,16 @@ public sealed class GalleryService
         }
         catch { return false; }
     }
+
+    public async Task<bool> DeletePresetAsync(string presetId)
+    {
+        try
+        {
+            using var resp = await _client.DeleteAsync($"{_baseUrl}/api/presets/{presetId}");
+            return resp.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
 }
 
 public sealed class PresetMetadata
@@ -94,6 +104,7 @@ public sealed class PresetMetadata
     public string Preview { get; set; } = "";
     public string CreatedAt { get; set; } = "";
     public int DownloadCount { get; set; }
+    public bool CanDelete { get; set; }
 }
 
 public sealed class PresetListResponse
