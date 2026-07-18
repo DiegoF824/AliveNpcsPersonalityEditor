@@ -107,21 +107,5 @@
   "gallery.upload.info": "Para enviar um preset de personalidade para a galeria, abra o editor de um NPC, personalize o perfil e clique em Salvar na Galeria.",
   "gallery.upload.hint": "Os presets também são salvos localmente como cópia de segurança.",
   "gallery.upload.no_presets": "Nenhum preset local. Salve um perfil pelo editor de NPC primeiro.",
-  "gallery.upload.search_placeholder": "Buscar presets locais...",
-  "button.confirm": "Confirmar?",
-  "config.chardata.section": "Dados de Personagem no Prompt da IA (Experimental)",
-  "config.chardata.disclaimer": "Altamente experimental e ainda em testes. Alimentar os Dados de Personagem estruturados de um NPC (gênero, modos, otimismo e assim por diante) no prompt da IA pode fazer os personagens contradizerem a personalidade escrita ou inventarem detalhes, ou seja, alucinarem. Deixe isto desativado a menos que esteja testando ativamente. Ative por sua conta e risco.",
-  "config.chardata.toggle": "Incluir Dados de Personagem no prompt",
-  "config.chardata.toggle.tooltip": "Quando ativado, os Dados de Personagem estruturados são adicionados ao prompt da IA. Desativado por padrão. Experimental, use por sua conta e risco.",
-  "editor.editing": "Editando {{name}}",
-  "field.birthday": "Aniversário",
-  "gallery.button.import_apply": "Importar e Aplicar",
-  "gallery.server.button": "Servidor",
-  "gallery.server.saved": "Servidor da galeria atualizado.",
-  "tab.local": "Local",
-  "title.farmer": "AliveNpcs - História do Fazendeiro",
-  "title.gallery": "AliveNpcs - Galeria de Personalidades",
-  "title.personalities": "AliveNpcs - Gerenciador de Personalidades",
-  "ui.no": "Não",
-  "ui.yes": "Sim"
+  "gallery.upload.search_placeholder": "Buscar presets locais..."
 }

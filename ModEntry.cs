@@ -36,13 +36,7 @@ public sealed class ModEntry : Mod
         if (_api == null || !Context.IsWorldReady) return;
         _farmerStore?.Load();
         Game1.activeClickableMenu = new PersonalityEditorMenu(
-            _store, _presetStore, _farmerStore!, _api, _config, _galleryService, Monitor, Helper.Translation,
-            onServerUrlSaved: url =>
-            {
-                _config.GalleryServerUrl = url;
-                Helper.WriteConfig(_config);
-            },
-            initialTab: tab);
+            _store, _presetStore, _farmerStore!, _api, _config, _galleryService, Monitor, Helper.Translation, initialTab: tab);
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -80,10 +74,7 @@ public sealed class ModEntry : Mod
         Monitor.Log($"Personality Editor ready. Press {_config.OpenFarmerTabKey} for Farmer tab, {_config.OpenEditorKey} for NPCs/Catalog.", LogLevel.Info);
     }
 
-    private void PushCharacterDataPromptSetting()
-    {
-        try { _api?.SetCharacterDataPromptEnabled(_config.IncludeCharacterDataInPrompt); }
-        catch (Exception ex) { Monitor.Log($"Could not push CharacterData prompt setting: {ex.Message}", LogLevel.Trace); }
+        Monitor.Log($"Personality Editor ready. Press {_config.OpenFarmerTabKey} for Farmer tab, {_config.OpenEditorKey} for NPCs/Catalog.", LogLevel.Info);
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)

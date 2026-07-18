@@ -18,7 +18,6 @@ public sealed class PersonalityEditorMenu : IClickableMenu
     private readonly GalleryService? _galleryService;
     private readonly IMonitor _monitor;
     private readonly ITranslationHelper _i18n;
-    private readonly Action<string>? _onServerUrlSaved;
 
     private readonly string[] _npcs;
     private readonly Dictionary<string, string> _defaults = new(StringComparer.OrdinalIgnoreCase);
@@ -32,29 +31,16 @@ public sealed class PersonalityEditorMenu : IClickableMenu
     private int _maxScroll;
     private Rectangle _npcGridArea;
 
-    // NPC category tabs (Bachelors / Bachelorettes / Townspeople / Special / SVE / Other).
-    private (string Key, string[] Npcs)[] _categories = Array.Empty<(string, string[])>();
-    private int _activeCategory;
-
-    private const int HeaderTitleH = 60;   // in-window title band (per-tab title)
-    private const int TabStripH = 48;      // raised tabs sitting on the window's top edge
-    private const int CategoryBarH = 44;   // NPC category button row (NPCs tab only)
+    private const int HeaderTitleH = 70;
+    private const int TopTabH = 46;
     private const int CardSize = 194;
-    private const int CardRowGap = 32;
-    private const int MaxCardGap = 40;   // cap the horizontal gap so wide grids don't spread cards apart
+    private const int CardRowGap = 64;
     private const int PortraitSourceSize = 64;
 
     private static readonly Color TabActive = new(235, 155, 45);
     private static readonly Color TabInactive = new(255, 240, 215);
-    private static readonly Color CardBackground = new(222, 195, 153);
+    private static readonly Color CardBackground = new(255, 248, 234);
     private static readonly Color Border = new(125, 60, 40);
-
-    private static readonly HashSet<string> KnownBachelors = new(StringComparer.OrdinalIgnoreCase)
-        { "Alex", "Elliott", "Harvey", "Sam", "Sebastian", "Shane" };
-    private static readonly HashSet<string> KnownBachelorettes = new(StringComparer.OrdinalIgnoreCase)
-        { "Abigail", "Emily", "Haley", "Leah", "Maru", "Penny" };
-    private static readonly HashSet<string> KnownSpecial = new(StringComparer.OrdinalIgnoreCase)
-        { "Dwarf", "Krobus", "Sandy", "Wizard", "Leo" };
 
     public PersonalityEditorMenu(
         PersonalityStore store,
@@ -65,7 +51,6 @@ public sealed class PersonalityEditorMenu : IClickableMenu
         GalleryService? galleryService,
         IMonitor monitor,
         ITranslationHelper i18n,
-        Action<string>? onServerUrlSaved = null,
         int initialTab = 0)
         : base(0, 0, 0, 0)
     {
@@ -77,17 +62,14 @@ public sealed class PersonalityEditorMenu : IClickableMenu
         _galleryService = galleryService;
         _monitor = monitor;
         _i18n = i18n;
-        _onServerUrlSaved = onServerUrlSaved;
         _tab = Math.Clamp(initialTab, 0, 2);
 
         _npcs = GetEditableNpcNames(api);
-        _categories = BuildCategories(api, _npcs);
         LoadNpcPresentationData();
         RecalculateLayout();
 
         _farmerPanel = new FarmerFormPanel(
-            _farmerStore, _api, _presetStore, _galleryService, _monitor, _i18n, GetFarmerContentArea,
-            () => exitThisMenu(), NotifyCharacterSheetReload);
+            _farmerStore, _presetStore, _galleryService, _monitor, _i18n, GetFarmerContentArea, () => exitThisMenu());
 
         if (_config.GalleryEnabled && _galleryService != null)
         {
@@ -100,9 +82,7 @@ public sealed class PersonalityEditorMenu : IClickableMenu
                 GetCatalogContentArea,
                 _config.GalleryServerUrl,
                 _presetStore,
-                NotifyAliveNpcsReload,
-                ApplyFarmerPreset,
-                _onServerUrlSaved);
+                NotifyAliveNpcsReload);
         }
     }
 
@@ -130,45 +110,6 @@ public sealed class PersonalityEditorMenu : IClickableMenu
         }
     }
 
-    /// <summary>NPCs shown in the grid: the members of the currently-selected category.</summary>
-    private string[] CurrentNpcs => _categories.Length == 0
-        ? _npcs
-        : _categories[Math.Clamp(_activeCategory, 0, _categories.Length - 1)].Npcs;
-
-    // Partition the editable NPCs into display categories, mirroring the base game's social groups.
-    private static (string Key, string[] Npcs)[] BuildCategories(IAliveNpcsApi api, string[] editableNpcs)
-    {
-        var editable = new HashSet<string>(editableNpcs, StringComparer.OrdinalIgnoreCase);
-        HashSet<string> vanillaSet, sveSet;
-        try { vanillaSet = new HashSet<string>(api.GetVanillaNpcNames(), StringComparer.OrdinalIgnoreCase); }
-        catch { vanillaSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase); }
-        try { sveSet = new HashSet<string>(api.GetSveNpcNames(), StringComparer.OrdinalIgnoreCase); }
-        catch { sveSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase); }
-
-        var vanilla = editable.Where(vanillaSet.Contains).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase).ToArray();
-        var sve = editable.Where(n => !vanillaSet.Contains(n) && sveSet.Contains(n)).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase).ToArray();
-        var other = editable.Where(n => !vanillaSet.Contains(n) && !sveSet.Contains(n)).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase).ToList();
-
-        var bachelors = vanilla.Where(KnownBachelors.Contains).ToArray();
-        var bachelorettes = vanilla.Where(KnownBachelorettes.Contains).ToArray();
-        var townspeople = vanilla.Where(n => !KnownBachelors.Contains(n) && !KnownBachelorettes.Contains(n) && !KnownSpecial.Contains(n)).ToArray();
-        var special = vanilla.Where(KnownSpecial.Contains)
-            .Concat(other.Where(KnownSpecial.Contains))
-            .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        other = other.Where(n => !KnownSpecial.Contains(n)).ToList();
-
-        var categories = new List<(string, string[])>();
-        if (bachelors.Length > 0) categories.Add(("page.bachelors", bachelors));
-        if (bachelorettes.Length > 0) categories.Add(("page.bachelorettes", bachelorettes));
-        if (townspeople.Length > 0) categories.Add(("page.townspeople", townspeople));
-        if (special.Length > 0) categories.Add(("page.special", special));
-        if (sve.Length > 0) categories.Add(("page.sve", sve));
-        if (other.Count > 0) categories.Add(("page.other", other.ToArray()));
-
-        // Fallback: if categorisation yielded nothing (e.g. API returned no vanilla list), show all.
-        return categories.Count > 0 ? categories.ToArray() : new[] { ("page.other", editableNpcs) };
-    }
-
     private void LoadNpcPresentationData()
     {
         foreach (var npcName in _npcs)
@@ -194,13 +135,11 @@ public sealed class PersonalityEditorMenu : IClickableMenu
     {
         var viewport = Game1.uiViewport;
         width = Math.Min(1104, viewport.Width - 24);
-        // Slightly shorter than before, and leave room above for the raised tab strip.
-        height = Math.Min(880, viewport.Height - 24 - TabStripH);
+        height = Math.Min(940, viewport.Height - 24);
         xPositionOnScreen = (viewport.Width - width) / 2;
-        yPositionOnScreen = Math.Max(TabStripH + 8, (viewport.Height - height) / 2);
+        yPositionOnScreen = (viewport.Height - height) / 2;
 
-        // Reserve a row for the NPC category buttons above the grid.
-        var top = yPositionOnScreen + HeaderTitleH + 20 + CategoryBarH;
+        var top = yPositionOnScreen + HeaderTitleH + TopTabH + 60;
         _npcGridArea = new Rectangle(
             xPositionOnScreen + 40,
             top,
@@ -209,46 +148,15 @@ public sealed class PersonalityEditorMenu : IClickableMenu
         _scrollY = Math.Clamp(_scrollY, 0, Math.Max(0, _maxScroll));
     }
 
-    private Rectangle GetCategoryBarArea()
-        => new(xPositionOnScreen + 40, yPositionOnScreen + HeaderTitleH + 14, width - 80, CategoryBarH);
-
-    private Rectangle GetCategoryTabRect(int index)
-    {
-        var area = GetCategoryBarArea();
-        var count = Math.Max(1, _categories.Length);
-        const int gap = 6;
-        var tabW = (area.Width - (count - 1) * gap) / count;
-        return new Rectangle(area.X + index * (tabW + gap), area.Y, tabW, area.Height);
-    }
-
-    private void DrawCategoryBar(SpriteBatch b)
-    {
-        for (var i = 0; i < _categories.Length; i++)
-        {
-            var rect = GetCategoryTabRect(i);
-            var active = i == _activeCategory;
-            EditorTheme.DrawFrame(b, rect, active ? TabActive : TabInactive);
-
-            var label = _i18n.Get(_categories[i].Key).ToString();
-            var scale = 1f;
-            var size = Game1.smallFont.MeasureString(label);
-            if (size.X > rect.Width - 16)
-                scale = Math.Max(0.6f, (rect.Width - 16) / size.X);
-            Utility.drawTextWithShadow(b, label, Game1.smallFont,
-                new Vector2(rect.X + (rect.Width - size.X * scale) / 2f, rect.Y + (rect.Height - size.Y * scale) / 2f),
-                active ? Color.Black : Color.SaddleBrown, scale);
-        }
-    }
-
     private Rectangle GetFarmerContentArea()
     {
-        var top = yPositionOnScreen + HeaderTitleH + 12;
+        var top = yPositionOnScreen + HeaderTitleH + TopTabH + 48;
         return new Rectangle(xPositionOnScreen + 24, top, width - 48, yPositionOnScreen + height - 16 - top);
     }
 
     private Rectangle GetCatalogContentArea()
     {
-        var top = yPositionOnScreen + HeaderTitleH + 8;
+        var top = yPositionOnScreen + HeaderTitleH + TopTabH + 44;
         return new Rectangle(xPositionOnScreen + 40, top, width - 80, yPositionOnScreen + height - 28 - top);
     }
 
@@ -269,7 +177,6 @@ public sealed class PersonalityEditorMenu : IClickableMenu
                 _farmerPanel.Draw(b);
                 break;
             case 1:
-                DrawCategoryBar(b);
                 DrawNpcGrid(b);
                 break;
             case 2 when _galleryPane != null:
@@ -285,78 +192,45 @@ public sealed class PersonalityEditorMenu : IClickableMenu
 
     private void DrawTitle(SpriteBatch b)
     {
-        var key = _tab switch
-        {
-            0 => "title.farmer",
-            2 => "title.gallery",
-            _ => "title.personalities"
-        };
-        var title = _i18n.Get(key).ToString();
+        var title = _i18n.Get("editor.title").ToString();
         var size = Game1.dialogueFont.MeasureString(title);
         Utility.drawTextWithShadow(b, title, Game1.dialogueFont,
-            new Vector2(xPositionOnScreen + (width - size.X) / 2f, yPositionOnScreen + 16),
+            new Vector2(xPositionOnScreen + (width - size.X) / 2f, yPositionOnScreen + 18),
             Color.Black);
     }
 
-    private static readonly string[] TabKeys = { "tab.farmer", "tab.personalities", "tab.gallery" };
-
     private void DrawTopTabs(SpriteBatch b)
     {
-        // Draw inactive tabs first so the active one overlaps its neighbours cleanly.
-        for (var i = 0; i < TabKeys.Length; i++)
-            if (i != _tab)
-                DrawTab(b, i, active: false);
+        var labels = new[]
+        {
+            _i18n.Get("tab.farmer").ToString(),
+            _i18n.Get("tab.npcs").ToString(),
+            _i18n.Get("tab.catalog").ToString()
+        };
 
-        DrawTab(b, _tab, active: true);
+        for (var i = 0; i < labels.Length; i++)
+        {
+            var rect = GetTopTabRect(i);
+            DrawButton(b, rect, labels[i], i == _tab ? TabActive : TabInactive, i == _tab ? Color.Black : Color.SaddleBrown);
+        }
     }
-
-    private void DrawTab(SpriteBatch b, int index, bool active)
-    {
-        var rect = GetTopTabRect(index);
-        EditorTheme.DrawFrame(b, rect, active ? TabActive : TabInactive);
-
-        // Icon on the left, vertically centred.
-        var (texture, source) = GetTabIcon(index);
-        const int iconH = 24;
-        var scale = iconH / (float)source.Height;
-        var iconW = (int)(source.Width * scale);
-        var iconX = rect.X + 16;
-        var iconY = rect.Y + (rect.Height - iconH) / 2;
-        b.Draw(texture, new Rectangle(iconX, iconY, iconW, iconH), source, Color.White);
-
-        // Label centred in the space to the right of the icon.
-        var label = _i18n.Get(TabKeys[index]).ToString();
-        var textLeft = iconX + iconW + 8;
-        var textAreaW = rect.Right - 12 - textLeft;
-        var size = Game1.smallFont.MeasureString(label);
-        Utility.drawTextWithShadow(b, label, Game1.smallFont,
-            new Vector2(textLeft + (textAreaW - size.X) / 2f, rect.Y + (rect.Height - size.Y) / 2f),
-            active ? Color.Black : Color.SaddleBrown);
-    }
-
-    // Themed game icons (respect UI-reskin mods). Source rects are easy to swap.
-    private static (Texture2D texture, Rectangle source) GetTabIcon(int index) => index switch
-    {
-        0 => (Game1.mouseCursors, new Rectangle(211, 428, 7, 6)),   // heart → Farmer backstory
-        2 => (Game1.mouseCursors, new Rectangle(229, 410, 14, 14)), // gift  → Gallery (shared presets)
-        _ => (Game1.mouseCursors, new Rectangle(346, 392, 8, 8)),   // star  → Personalities
-    };
 
     private Rectangle GetTopTabRect(int index)
     {
-        // Raised, browser-style tabs sitting on the window's top edge (they overlap
-        // the frame slightly so the strip reads as attached to the panel).
-        var tabWidth = Math.Min(232, (width - 48) / 3);
-        var y = yPositionOnScreen - TabStripH + 10;
-        var startX = xPositionOnScreen + 24;
-        return new Rectangle(startX + index * (tabWidth + 8), y, tabWidth, TabStripH);
+        var tabWidth = Math.Min(252, (width - 160) / 3);
+        var y = yPositionOnScreen + HeaderTitleH + 14;
+        return index switch
+        {
+            0 => new Rectangle(xPositionOnScreen + 40, y, tabWidth, TopTabH),
+            1 => new Rectangle(xPositionOnScreen + (width - tabWidth) / 2, y, tabWidth, TopTabH),
+            _ => new Rectangle(xPositionOnScreen + width - 40 - tabWidth, y, tabWidth, TopTabH)
+        };
     }
 
     private void DrawNpcGrid(SpriteBatch b)
     {
-        var npcs = CurrentNpcs;
         var layout = GetNpcGridLayout();
-        var rows = (npcs.Length + layout.Columns - 1) / layout.Columns;
+        var rows = (_npcs.Length + layout.Columns - 1) / layout.Columns;
         var totalHeight = Math.Max(0, rows * CardSize + Math.Max(0, rows - 1) * CardRowGap);
         _maxScroll = Math.Max(0, totalHeight - _npcGridArea.Height);
         _scrollY = Math.Clamp(_scrollY, 0, _maxScroll);
@@ -368,12 +242,12 @@ public sealed class PersonalityEditorMenu : IClickableMenu
             new RasterizerState { ScissorTestEnable = true });
         b.GraphicsDevice.ScissorRectangle = _npcGridArea;
 
-        for (var i = 0; i < npcs.Length; i++)
+        for (var i = 0; i < _npcs.Length; i++)
         {
             var rect = GetNpcCardRect(i, layout);
             if (rect.Bottom < _npcGridArea.Top || rect.Top > _npcGridArea.Bottom)
                 continue;
-            DrawNpcCard(b, npcs[i], rect);
+            DrawNpcCard(b, _npcs[i], rect);
         }
 
         b.End();
@@ -387,7 +261,7 @@ public sealed class PersonalityEditorMenu : IClickableMenu
     private (int Columns, int Gap, int StartX) GetNpcGridLayout()
     {
         var columns = Math.Clamp((_npcGridArea.Width + 40) / (CardSize + 40), 1, 4);
-        var gap = columns > 1 ? Math.Min(MaxCardGap, (_npcGridArea.Width - columns * CardSize) / (columns - 1)) : 0;
+        var gap = columns > 1 ? (_npcGridArea.Width - columns * CardSize) / (columns - 1) : 0;
         var used = columns * CardSize + Math.Max(0, columns - 1) * gap;
         return (columns, gap, _npcGridArea.X + (_npcGridArea.Width - used) / 2);
     }
@@ -405,7 +279,8 @@ public sealed class PersonalityEditorMenu : IClickableMenu
 
     private void DrawNpcCard(SpriteBatch b, string npcName, Rectangle rect)
     {
-        EditorTheme.DrawFrame(b, rect, CardBackground);
+        b.Draw(Game1.staminaRect, rect, CardBackground);
+        DrawBorder(b, rect, Border, 4);
 
         var displayName = _displayNames.GetValueOrDefault(npcName, npcName);
         var nameColor = _store.HasOverride(npcName) ? new Color(55, 120, 45) : Color.Black;
@@ -415,10 +290,11 @@ public sealed class PersonalityEditorMenu : IClickableMenu
 
         var portraitSize = Math.Min(148, rect.Width - 24);
         var portraitRect = new Rectangle(rect.X + (rect.Width - portraitSize) / 2, rect.Bottom - portraitSize, portraitSize, portraitSize);
-        PortraitDraw.Draw(b, portraitRect, npcName, _portraits.GetValueOrDefault(npcName));
-
-        if (_store.Get(npcName)?.HasCharacterDataOverride == true)
-            EditorTheme.DrawCharacterDataBadge(b, rect, _i18n.Get("indicator.character_data").ToString());
+        var portrait = _portraits.GetValueOrDefault(npcName);
+        if (portrait != null)
+            b.Draw(portrait, portraitRect, new Rectangle(0, 0, PortraitSourceSize, PortraitSourceSize), Color.White);
+        else
+            b.Draw(Game1.staminaRect, portraitRect, Color.Black * 0.08f);
     }
 
     private void DrawGalleryUnavailable(SpriteBatch b)
@@ -430,12 +306,31 @@ public sealed class PersonalityEditorMenu : IClickableMenu
             new Vector2(area.X + (area.Width - size.X) / 2f, area.Y + 80), Color.SaddleBrown);
     }
 
+    private static void DrawButton(SpriteBatch b, Rectangle rect, string label, Color background, Color text)
+    {
+        b.Draw(Game1.staminaRect, rect, background);
+        DrawBorder(b, rect, Border, 4);
+        var size = Game1.smallFont.MeasureString(label);
+        Utility.drawTextWithShadow(b, label, Game1.smallFont,
+            new Vector2(rect.X + (rect.Width - size.X) / 2f, rect.Y + (rect.Height - size.Y) / 2f), text);
+    }
+
     internal static void DrawBorder(SpriteBatch b, Rectangle rect, Color color, int thickness)
     {
         b.Draw(Game1.staminaRect, new Rectangle(rect.X, rect.Y, rect.Width, thickness), color);
         b.Draw(Game1.staminaRect, new Rectangle(rect.X, rect.Bottom - thickness, rect.Width, thickness), color);
         b.Draw(Game1.staminaRect, new Rectangle(rect.X, rect.Y, thickness, rect.Height), color);
         b.Draw(Game1.staminaRect, new Rectangle(rect.Right - thickness, rect.Y, thickness, rect.Height), color);
+    }
+
+    internal static void DrawScrollbar(SpriteBatch b, Rectangle area, int scroll, int maxScroll)
+    {
+        var track = new Rectangle(area.Right + 14, area.Y, 16, area.Height);
+        b.Draw(Game1.staminaRect, track, new Color(255, 246, 220));
+        DrawBorder(b, track, Border, 1);
+        var thumbHeight = Math.Max(58, track.Height * track.Height / (track.Height + maxScroll));
+        var thumbY = track.Y + (int)((float)scroll / Math.Max(1, maxScroll) * (track.Height - thumbHeight));
+        b.Draw(Game1.staminaRect, new Rectangle(track.X + 3, thumbY, track.Width - 6, thumbHeight), new Color(145, 65, 38));
     }
 
     internal static void DrawScrollbar(SpriteBatch b, Rectangle area, int scroll, int maxScroll)
@@ -464,28 +359,13 @@ public sealed class PersonalityEditorMenu : IClickableMenu
             return;
         }
 
-        // Category buttons (above the grid).
-        for (var i = 0; i < _categories.Length; i++)
-        {
-            if (!GetCategoryTabRect(i).Contains(x, y))
-                continue;
-            if (_activeCategory != i)
-            {
-                _activeCategory = i;
-                _scrollY = 0;
-                Game1.playSound("smallSelect");
-            }
-            return;
-        }
-
-        var npcs = CurrentNpcs;
         var layout = GetNpcGridLayout();
-        for (var i = 0; i < npcs.Length; i++)
+        for (var i = 0; i < _npcs.Length; i++)
         {
             var rect = GetNpcCardRect(i, layout);
             if (!rect.Contains(x, y) || !_npcGridArea.Contains(x, y))
                 continue;
-            OpenNpcEditor(npcs[i]);
+            OpenNpcEditor(_npcs[i]);
             Game1.playSound("smallSelect");
             return;
         }
@@ -563,31 +443,6 @@ public sealed class PersonalityEditorMenu : IClickableMenu
     {
         try { _api.ReloadCustomPersonalities(); }
         catch (Exception ex) { _monitor.Log($"Reload notify failed: {ex.Message}", LogLevel.Warn); }
-    }
-
-    private void NotifyCharacterSheetReload()
-    {
-        try { _api.ReloadCharacterSheet(); }
-        catch (Exception ex) { _monitor.Log($"Character sheet reload notify failed: {ex.Message}", LogLevel.Warn); }
-    }
-
-    // Apply a farmer gallery preset by writing it back to the character sheet through
-    // AliveNpcs (maps the preset's generic slots to the backstory fields).
-    private void ApplyFarmerPreset(Models.NpcOverrideEntry entry)
-    {
-        try
-        {
-            _api.UpdateCharacterSheet(
-                entry.CanonicalPersonality ?? "",  // Who am I
-                entry.Lore ?? "",                  // Why moved here
-                entry.SocialTags ?? "",            // Extra info
-                entry.Appearance ?? "");           // At-a-glance
-            _farmerPanel.LoadFromStore();          // refresh the Farmer tab UI
-        }
-        catch (Exception ex)
-        {
-            _monitor.Log($"Apply farmer preset failed: {ex.Message}", LogLevel.Warn);
-        }
     }
 
     protected override void cleanupBeforeExit()

@@ -106,22 +106,5 @@
   "gallery.upload.info": "Para subir un preset de personalidad a la galería, abre el modal de edición de cualquier NPC, personaliza su personalidad, luego haz clic en el botón 'Subir a la Galería' en la parte inferior derecha de la ventana de edición.",
   "gallery.upload.hint": "También puedes guardar presets localmente usando el botón 'Guardar Preset' en el modal de edición, luego explorarlos y aplicarlos en cualquier momento mediante 'Explorar Presets'.",
   "gallery.upload.no_presets": "No hay presets locales. Guarda presets desde el modal de edición del NPC primero.",
-  "gallery.upload.search_placeholder": "Buscar presets locales...",
-  "button.confirm": "¿Confirmar?",
-  "button.load": "Cargar",
-  "config.chardata.section": "Datos de Personaje en el Prompt de la IA (Experimental)",
-  "config.chardata.disclaimer": "Muy experimental y aún en pruebas. Introducir los Datos de Personaje estructurados de un NPC (género, modales, optimismo, etc.) en el prompt de la IA puede hacer que los personajes contradigan su personalidad escrita o inventen detalles, es decir, que alucinen. Déjalo desactivado a menos que estés probando activamente. Actívalo bajo tu propia responsabilidad.",
-  "config.chardata.toggle": "Incluir Datos de Personaje en el prompt",
-  "config.chardata.toggle.tooltip": "Cuando está activado, los Datos de Personaje estructurados se añaden al prompt de la IA. Desactivado por defecto. Experimental, úsalo bajo tu propia responsabilidad.",
-  "editor.editing": "Editando {{name}}",
-  "field.birthday": "Cumpleaños",
-  "gallery.button.import_apply": "Importar y Aplicar",
-  "gallery.server.button": "Servidor",
-  "gallery.server.saved": "Servidor de la galería actualizado.",
-  "tab.local": "Local",
-  "title.farmer": "AliveNpcs - Historia del Granjero",
-  "title.gallery": "AliveNpcs - Galería de Personalidades",
-  "title.personalities": "AliveNpcs - Gestor de Personalidades",
-  "ui.no": "No",
-  "ui.yes": "Sí"
+  "gallery.upload.search_placeholder": "Buscar presets locales..."
 }

@@ -103,22 +103,5 @@
   "gallery.upload.info": "Pour téléverser un preset de personnalité vers la galerie, ouvrez le modal d'édition de n'importe quel NPC, personnalisez sa personnalité, puis cliquez sur le bouton « Téléverser vers la Galerie » en bas à droite de la fenêtre d'édition.",
   "gallery.upload.hint": "Vous pouvez aussi enregistrer des presets localement via le bouton « Enregistrer le Preset » dans le modal d'édition, puis les parcourir et les appliquer à tout moment via « Parcourir les Presets ».",
   "gallery.upload.no_presets": "Aucun preset local. Enregistrez d'abord des presets depuis le modal d'édition du NPC.",
-  "gallery.upload.search_placeholder": "Rechercher des presets locaux...",
-  "button.confirm": "Confirmer ?",
-  "button.load": "Charger",
-  "config.chardata.section": "Données de Personnage dans le Prompt de l'IA (Expérimental)",
-  "config.chardata.disclaimer": "Très expérimental et encore en test. Injecter les Données de Personnage structurées d'un PNJ (genre, manières, optimisme, etc.) dans le prompt de l'IA peut amener les personnages à contredire leur personnalité écrite ou à inventer des détails, c'est-à-dire à halluciner. Laissez ceci désactivé sauf si vous faites des tests actifs. Activez-le à vos risques et périls.",
-  "config.chardata.toggle": "Inclure les Données de Personnage dans le prompt",
-  "config.chardata.toggle.tooltip": "Une fois activé, les Données de Personnage structurées sont ajoutées au prompt de l'IA. Désactivé par défaut. Expérimental, à utiliser à vos risques et périls.",
-  "editor.editing": "Modification de {{name}}",
-  "field.birthday": "Anniversaire",
-  "gallery.button.import_apply": "Importer et Appliquer",
-  "gallery.server.button": "Serveur",
-  "gallery.server.saved": "Serveur de la galerie mis à jour.",
-  "tab.local": "Local",
-  "title.farmer": "AliveNpcs - Histoire du Fermier",
-  "title.gallery": "AliveNpcs - Galerie de Personnalités",
-  "title.personalities": "AliveNpcs - Gestionnaire de Personnalités",
-  "ui.no": "Non",
-  "ui.yes": "Oui"
+  "gallery.upload.search_placeholder": "Rechercher des presets locaux..."
 }

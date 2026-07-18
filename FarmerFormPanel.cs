@@ -17,13 +17,12 @@ namespace AliveNpcsPersonalityEditor;
 public sealed class FarmerFormPanel
 {
     private readonly FarmerStore _store;
-    private readonly IAliveNpcsApi _api;
     private readonly PresetStore _presetStore;
+    private readonly GalleryService? _galleryService;
     private readonly ITranslationHelper _i18n;
     private readonly IMonitor _monitor;
     private readonly System.Func<Rectangle> _getContentArea;
     private readonly System.Action _onCancel;
-    private readonly System.Action _onSaved;
 
     private readonly MultilineTextBox[] _boxes = new MultilineTextBox[4];
     private int _activeField = -1;
@@ -44,24 +43,20 @@ public sealed class FarmerFormPanel
 
     public FarmerFormPanel(
         FarmerStore store,
-        IAliveNpcsApi api,
         PresetStore presetStore,
         GalleryService? galleryService,
         IMonitor monitor,
         ITranslationHelper i18n,
         System.Func<Rectangle> getContentArea,
-        System.Action? onCancel = null,
-        System.Action? onSaved = null)
+        System.Action? onCancel = null)
     {
         _store = store;
-        _api = api;
         _presetStore = presetStore;
-        _ = galleryService;
+        _galleryService = galleryService;
         _monitor = monitor;
         _i18n = i18n;
         _getContentArea = getContentArea;
         _onCancel = onCancel ?? (() => { });
-        _onSaved = onSaved ?? (() => { });
 
         for (int i = 0; i < _boxes.Length; i++)
             _boxes[i] = new MultilineTextBox(Rectangle.Empty, Game1.smallFont, TextColor) { TextLimit = 500 };
@@ -71,29 +66,11 @@ public sealed class FarmerFormPanel
 
     public void LoadFromStore()
     {
-        // Prefer AliveNpcs' own sheet (path-independent, always the live truth).
-        // Fall back to the local cache only when the base mod has nothing yet.
-        var api = TryGetApiSheet();
-        _boxes[0].Text = api?[0] ?? _store.Sheet.WhoAmI ?? "";
-        _boxes[1].Text = api?[1] ?? _store.Sheet.WhyMovedHere ?? "";
-        _boxes[2].Text = api?[2] ?? _store.Sheet.ExtraInfo ?? "";
-        _boxes[3].Text = api?[3] ?? _store.Sheet.AtAGlanceDetails ?? "";
+        _boxes[0].Text = _store.Sheet.WhoAmI ?? "";
+        _boxes[1].Text = _store.Sheet.WhyMovedHere ?? "";
+        _boxes[2].Text = _store.Sheet.ExtraInfo ?? "";
+        _boxes[3].Text = _store.Sheet.AtAGlanceDetails ?? "";
         UnsubscribeTextBox();
-    }
-
-    private string[]? TryGetApiSheet()
-    {
-        try
-        {
-            var sheet = _api.GetCharacterSheet();
-            if (sheet is { Length: >= 4 } && sheet.Any(v => !string.IsNullOrWhiteSpace(v)))
-                return sheet;
-        }
-        catch (Exception ex)
-        {
-            _monitor.Log($"GetCharacterSheet failed: {ex.Message}", LogLevel.Trace);
-        }
-        return null;
     }
 
     private static string[] Labels(ITranslationHelper i18n) => new[]
@@ -151,7 +128,14 @@ public sealed class FarmerFormPanel
     }
 
     private static void DrawButton(SpriteBatch b, Rectangle rect, string label, Color bg)
-        => EditorTheme.DrawButton(b, rect, label, bg, Color.Black);
+    {
+        b.Draw(Game1.staminaRect, rect, bg);
+        PersonalityEditorMenu.DrawBorder(b, rect, new Color(125, 60, 40), 4);
+        var sz = Game1.smallFont.MeasureString(label);
+        Utility.drawTextWithShadow(b, label, Game1.smallFont,
+            new Vector2(rect.X + (rect.Width - sz.X) / 2f, rect.Y + (rect.Height - sz.Y) / 2f),
+            Color.Black);
+    }
 
     public void receiveLeftClick(int x, int y)
     {
@@ -221,42 +205,26 @@ public sealed class FarmerFormPanel
             ExtraInfo = _boxes[2].Text.Trim(),
             AtAGlanceDetails = _boxes[3].Text.Trim()
         };
-
-        // Primary path: let AliveNpcs persist through its own manager (correct save
-        // directory + live in-memory update), exactly like the in-game F7 menu.
-        var savedViaApi = false;
-        try
-        {
-            _api.UpdateCharacterSheet(sheet.WhoAmI, sheet.WhyMovedHere, sheet.ExtraInfo, sheet.AtAGlanceDetails);
-            savedViaApi = true;
-        }
-        catch (Exception ex)
-        {
-            _monitor.Log($"UpdateCharacterSheet unavailable, using local file fallback: {ex.Message}", LogLevel.Warn);
-        }
-
-        // Keep a local cache regardless (harmless; also covers older AliveNpcs builds).
         _store.Save(sheet);
-
-        // If the API path wasn't available, best-effort ask the base mod to reload.
-        if (!savedViaApi)
-            _onSaved();
     }
 
-    // Saves to the LOCAL preset gallery only; uploading is an explicit opt-in from
-    // the Gallery tab's Local view (privacy by default).
-    private void SaveToGallery()
+    private async void SaveToGallery()
     {
+        if (_galleryService == null)
+        {
+            Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.preset.none"), 3));
+            return;
+        }
+
         try
         {
             var entry = new NpcOverrideEntry
             {
                 NpcName = "Farmer",
-                PresetType = "farmer",
-                CanonicalPersonality = _boxes[0].Text.Trim(),  // Who am I
-                Appearance = _boxes[3].Text.Trim(),            // At-a-glance
-                Lore = _boxes[1].Text.Trim(),                  // Why moved here
-                SocialTags = _boxes[2].Text.Trim(),            // Extra info
+                CanonicalPersonality = _boxes[0].Text.Trim(),
+                Appearance = _boxes[3].Text.Trim(),
+                Lore = _boxes[1].Text.Trim(),
+                SocialTags = _boxes[2].Text.Trim(),
             };
             if (!entry.HasAnyField)
             {
@@ -265,6 +233,12 @@ public sealed class FarmerFormPanel
             }
             _presetStore.Save("Farmer", entry);
             Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.preset.saved", new { npcName = "Farmer" }), 3));
+            if (_galleryService != null)
+            {
+                var author = Game1.player?.Name ?? "Anonymous";
+                var uploaded = await _galleryService.UploadPresetAsync("Farmer", entry, author);
+                Game1.addHUDMessage(new HUDMessage(_i18n.Get(uploaded ? "gallery.upload.success" : "gallery.upload.failed"), uploaded ? 4 : 3));
+            }
             Game1.playSound("coin");
         }
         catch (Exception ex)

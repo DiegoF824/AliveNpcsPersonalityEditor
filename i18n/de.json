@@ -103,22 +103,5 @@
   "gallery.upload.info": "Um ein Persönlichkeits-Preset in die Galerie hochzuladen, öffne das Bearbeitungsfenster eines beliebigen NPCs, passe seine Persönlichkeit an und klicke dann auf die Schaltfläche 'In Galerie hochladen' unten rechts im Bearbeitungsfenster.",
   "gallery.upload.hint": "Du kannst Presets auch lokal über die Schaltfläche 'Preset speichern' im Bearbeitungsfenster speichern und sie dann jederzeit über 'Presets durchsuchen' durchsuchen und anwenden.",
   "gallery.upload.no_presets": "Keine lokalen Presets. Speichere zuerst Presets aus dem NPC-Bearbeitungsfenster.",
-  "gallery.upload.search_placeholder": "Lokale Presets suchen...",
-  "button.confirm": "Bestätigen?",
-  "button.load": "Laden",
-  "config.chardata.section": "Charakterdaten im KI-Prompt (Experimentell)",
-  "config.chardata.disclaimer": "Hochgradig experimentell und noch in der Testphase. Das Einspeisen der strukturierten Charakterdaten eines NPCs (Geschlecht, Umgangston, Optimismus usw.) in den KI-Prompt kann dazu führen, dass Charaktere ihrer geschriebenen Persönlichkeit widersprechen oder Details erfinden, also halluzinieren. Lass dies deaktiviert, sofern du nicht aktiv testest. Aktivierung auf eigene Gefahr.",
-  "config.chardata.toggle": "Charakterdaten in den Prompt aufnehmen",
-  "config.chardata.toggle.tooltip": "Wenn aktiviert, werden strukturierte Charakterdaten dem KI-Prompt hinzugefügt. Standardmäßig deaktiviert. Experimentell, Nutzung auf eigene Gefahr.",
-  "editor.editing": "Bearbeite {{name}}",
-  "field.birthday": "Geburtstag",
-  "gallery.button.import_apply": "Importieren & Anwenden",
-  "gallery.server.button": "Server",
-  "gallery.server.saved": "Galerie-Server aktualisiert.",
-  "tab.local": "Lokal",
-  "title.farmer": "AliveNpcs - Farmer-Hintergrund",
-  "title.gallery": "AliveNpcs - Persönlichkeits-Galerie",
-  "title.personalities": "AliveNpcs - Persönlichkeits-Manager",
-  "ui.no": "Nein",
-  "ui.yes": "Ja"
+  "gallery.upload.search_placeholder": "Lokale Presets suchen..."
 }

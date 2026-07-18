@@ -107,21 +107,5 @@
   "gallery.upload.info": "To upload a personality preset to the gallery, open any NPC's edit modal, customize their personality, then click the 'Upload to Gallery' button at the bottom right of the edit window.",
   "gallery.upload.hint": "You can also save presets locally using the 'Save Preset' button in the edit modal, then browse and apply them anytime via 'Browse Presets'.",
   "gallery.upload.no_presets": "No local presets. Save presets from the NPC edit modal first.",
-  "gallery.upload.search_placeholder": "Search local presets...",
-  "button.confirm": "Confirm?",
-  "config.chardata.section": "Character Data in AI Prompt (Experimental)",
-  "config.chardata.disclaimer": "Highly experimental and still in testing. Feeding an NPC's structured Character Data (gender, manner, optimism, and so on) into the AI prompt can make characters contradict their written personality or invent details, i.e. hallucinate. Leave this off unless you are actively testing. Enable it at your own risk.",
-  "config.chardata.toggle": "Include Character Data in prompt",
-  "config.chardata.toggle.tooltip": "When on, structured Character Data is added to the AI prompt. Off by default. Experimental, use at your own risk.",
-  "editor.editing": "Editing {{name}}",
-  "field.birthday": "Birthday",
-  "gallery.button.import_apply": "Import & Apply",
-  "gallery.server.button": "Server",
-  "gallery.server.saved": "Gallery server updated.",
-  "tab.local": "Local",
-  "title.farmer": "AliveNpcs - Farmer Backstory",
-  "title.gallery": "AliveNpcs - Personality Gallery",
-  "title.personalities": "AliveNpcs - Personality Manager",
-  "ui.no": "No",
-  "ui.yes": "Yes"
+  "gallery.upload.search_placeholder": "Search local presets..."
 }

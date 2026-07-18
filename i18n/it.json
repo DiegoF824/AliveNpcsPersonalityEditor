@@ -103,22 +103,5 @@
   "gallery.upload.info": "Per caricare un preset di personalità nella galleria, apri il modal di modifica di qualsiasi NPC, personalizza la sua personalità, quindi clicca il pulsante 'Carica nella Galleria' in basso a destra nella finestra di modifica.",
   "gallery.upload.hint": "Puoi anche salvare i preset localmente usando il pulsante 'Salva Preset' nel modal di modifica, poi sfogliarli e applicarli in qualsiasi momento tramite 'Sfoglia Preset'.",
   "gallery.upload.no_presets": "Nessun preset locale. Salva i preset dal modal di modifica del NPC prima.",
-  "gallery.upload.search_placeholder": "Cerca preset locali...",
-  "button.confirm": "Confermare?",
-  "button.load": "Carica",
-  "config.chardata.section": "Dati del Personaggio nel Prompt dell'IA (Sperimentale)",
-  "config.chardata.disclaimer": "Altamente sperimentale e ancora in fase di test. Inserire i Dati del Personaggio strutturati di un NPC (genere, modi, ottimismo e così via) nel prompt dell'IA può far sì che i personaggi contraddicano la loro personalità scritta o inventino dettagli, cioè abbiano allucinazioni. Lascia questa opzione disattivata a meno che tu non stia testando attivamente. Attivala a tuo rischio e pericolo.",
-  "config.chardata.toggle": "Includi i Dati del Personaggio nel prompt",
-  "config.chardata.toggle.tooltip": "Se attivo, i Dati del Personaggio strutturati vengono aggiunti al prompt dell'IA. Disattivato per impostazione predefinita. Sperimentale, usalo a tuo rischio e pericolo.",
-  "editor.editing": "Modifica di {{name}}",
-  "field.birthday": "Compleanno",
-  "gallery.button.import_apply": "Importa e Applica",
-  "gallery.server.button": "Server",
-  "gallery.server.saved": "Server della galleria aggiornato.",
-  "tab.local": "Locale",
-  "title.farmer": "AliveNpcs - Storia del Contadino",
-  "title.gallery": "AliveNpcs - Galleria delle Personalità",
-  "title.personalities": "AliveNpcs - Gestore delle Personalità",
-  "ui.no": "No",
-  "ui.yes": "Sì"
+  "gallery.upload.search_placeholder": "Cerca preset locali..."
 }
