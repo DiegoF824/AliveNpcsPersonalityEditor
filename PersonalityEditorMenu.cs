@@ -415,6 +415,9 @@ public sealed class PersonalityEditorMenu : IClickableMenu
         var portraitSize = Math.Min(148, rect.Width - 24);
         var portraitRect = new Rectangle(rect.X + (rect.Width - portraitSize) / 2, rect.Bottom - portraitSize, portraitSize, portraitSize);
         PortraitDraw.Draw(b, portraitRect, npcName, _portraits.GetValueOrDefault(npcName));
+
+        if (_store.Get(npcName)?.HasCharacterDataOverride == true)
+            EditorTheme.DrawCharacterDataBadge(b, rect, _i18n.Get("indicator.character_data").ToString());
     }
 
     private void DrawGalleryUnavailable(SpriteBatch b)

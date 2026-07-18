@@ -20,6 +20,7 @@
   "field.character_data": "Character Data",
   "field.character_data.expand": "Show Character Data",
   "field.character_data.collapse": "Hide Character Data",
+  "field.character_data.locked": "Enable Character Data in the mod config (GMCM) to edit these fields.",
   "field.display_name": "Display Name",
   "field.gender": "Gender",
   "field.gender.0": "Male",

@@ -8,7 +8,9 @@ using StardewValley.Menus;
 
 namespace AliveNpcsPersonalityEditor;
 
-/// <summary>Full-screen NPC editor matching the supplied two-stage scrolling layout.</summary>
+/// <summary>Full-screen NPC editor. AliveNpcs personality fields sit on top; the
+/// riskier Data/Characters overrides live in a collapsible block at the bottom,
+/// gated behind the Character Data disclaimer opt-in from the mod config.</summary>
 public sealed class PersonalityEditModal : IClickableMenu
 {
     private readonly string _npcName;
@@ -18,6 +20,7 @@ public sealed class PersonalityEditModal : IClickableMenu
     private readonly PersonalityStore _store;
     private readonly PresetStore _presetStore;
     private readonly IAliveNpcsApi _api;
+    private readonly EditorConfig _config;
     private readonly IMonitor _monitor;
     private readonly ITranslationHelper _i18n;
     private readonly Action _onClose;
@@ -52,28 +55,30 @@ public sealed class PersonalityEditModal : IClickableMenu
     private Rectangle _resetButton;
     private Rectangle _galleryButton;
     private Rectangle _saveButton;
+    private Rectangle _cdHeaderRect;
     private int _scrollY;
     private int _maxScroll;
+
+    // Character Data block is collapsed by default; expanding it requires the
+    // disclaimer opt-in to be enabled in the mod config (GMCM).
+    private bool _cdExpanded;
 
     private const int PortraitSize = 194;
     private const int SelectorH = 44;
     private const int TextBoxH = 144;
     private const int ShortBoxH = 64;      // single-line-ish fields (Name, Submission Credit)
-    private const int ContentHeight = 1690;
     private const int LabelColumnW = 236;
 
-    private const int NameY = 8;
-    private const int GenderY = 140;
-    private const int MannerY = 216;
-    private const int AnxietyY = 302;
-    private const int OptimismY = 402;
-    private const int SocializeY = 504;
-    private const int RomanceY = 614;
-    private const int AppearanceY = 716;
-    private const int PersonalityY = 926;
-    private const int LoreY = 1136;
-    private const int SocialTagsY = 1346;
-    private const int CreditY = 1560;
+    // Vertical advance per row type, used by the dynamic layout pass.
+    private const int TopPad = 8;
+    private const int TallTextBlock = 210;
+    private const int ShortTextBlock = 132;
+    private const int SelectorBlock = 86;
+    private const int WrapSelectorBlock = 104;
+    private const int ToggleBlock = 84;
+    private const int HeaderBlock = 60;
+    private const int SectionGap = 16;
+    private const int HeaderH = 46;
 
     private static readonly Color Paper = new(255, 248, 234);
     private static readonly Color Border = new(125, 60, 40);
@@ -82,6 +87,7 @@ public sealed class PersonalityEditModal : IClickableMenu
     private static readonly Color SaveColor = new(125, 200, 105);
     private static readonly Color CancelColor = new(225, 125, 85);
     private static readonly Color ResetColor = new(205, 160, 95);
+    private static readonly Color LockedPaper = new(232, 224, 208);
 
     private static readonly string[] Genders = { "field.gender.0", "field.gender.1" };
     private static readonly string[] Manners = { "field.manner.0", "field.manner.1", "field.manner.2" };
@@ -98,6 +104,28 @@ public sealed class PersonalityEditModal : IClickableMenu
         SocialTags,
         SubmissionCredit
     }
+
+    // Ordered rows in the scrollable content. AliveNpcs fields first, then the
+    // Character Data header, then (when expanded) the override fields.
+    private enum Row
+    {
+        Appearance,
+        Personality,
+        Lore,
+        SocialTags,
+        Credit,
+        CdHeader,
+        Name,
+        Gender,
+        Manner,
+        Anxiety,
+        Optimism,
+        Socialize,
+        Romance
+    }
+
+    private readonly Dictionary<Row, int> _rowY = new();
+    private int _contentHeight;
 
     public PersonalityEditModal(
         string npcName,
@@ -121,16 +149,20 @@ public sealed class PersonalityEditModal : IClickableMenu
         _store = store;
         _presetStore = presetStore;
         _api = api;
+        _config = config;
         _ = galleryService;
         _monitor = monitor;
         _i18n = i18n;
         _onClose = onClose;
-        _ = config;
 
         RecalculateLayout();
         InitializeTextBoxes();
         LoadState();
     }
+
+    /// <summary>Whether the Character Data overrides may be edited — gated on the
+    /// disclaimer opt-in enabled from the mod config (GMCM).</summary>
+    private bool CanEditCharacterData => _config.IncludeCharacterDataInPrompt;
 
     private void RecalculateLayout()
     {
@@ -150,6 +182,38 @@ public sealed class PersonalityEditModal : IClickableMenu
         _scrollY = Math.Clamp(_scrollY, 0, Math.Max(0, _maxScroll));
     }
 
+    // Compute each row's relative Y (independent of scroll) and the total content height.
+    private void BuildLayout()
+    {
+        _rowY.Clear();
+        var y = TopPad;
+        void Place(Row row, int advance) { _rowY[row] = y; y += advance; }
+
+        Place(Row.Appearance, TallTextBlock);
+        Place(Row.Personality, TallTextBlock);
+        Place(Row.Lore, TallTextBlock);
+        Place(Row.SocialTags, TallTextBlock);
+        Place(Row.Credit, ShortTextBlock);
+
+        y += SectionGap;
+        Place(Row.CdHeader, HeaderBlock);
+
+        if (_cdExpanded && CanEditCharacterData)
+        {
+            Place(Row.Name, ShortTextBlock);
+            Place(Row.Gender, SelectorBlock);
+            Place(Row.Manner, SelectorBlock);
+            Place(Row.Anxiety, WrapSelectorBlock);
+            Place(Row.Optimism, SelectorBlock);
+            Place(Row.Socialize, ToggleBlock);
+            Place(Row.Romance, ToggleBlock);
+        }
+
+        _contentHeight = y + 24;
+    }
+
+    private int RowY(Row row) => _rowY.TryGetValue(row, out var v) ? v : -100000;
+
     private void InitializeTextBoxes()
     {
         var textWidth = Math.Max(220, _scrollArea.Width - 34);
@@ -159,6 +223,7 @@ public sealed class PersonalityEditModal : IClickableMenu
         _loreBox = CreateTextBox(textWidth, 600);
         _socialTagsBox = CreateTextBox(textWidth, 300);
         _creditBox = CreateTextBox(textWidth, 120, ShortBoxH);
+        BuildLayout();
         LayoutTextBoxes();
     }
 
@@ -176,12 +241,16 @@ public sealed class PersonalityEditModal : IClickableMenu
     {
         var x = _scrollArea.X;
         var width = _scrollArea.Width - 34;
-        Relocate(_nameBox, x, ContentY(NameY + 36), width, ShortBoxH);
-        Relocate(_appearanceBox, x, ContentY(AppearanceY + 36), width);
-        Relocate(_personalityBox, x, ContentY(PersonalityY + 36), width);
-        Relocate(_loreBox, x, ContentY(LoreY + 36), width);
-        Relocate(_socialTagsBox, x, ContentY(SocialTagsY + 36), width);
-        Relocate(_creditBox, x, ContentY(CreditY + 36), width, ShortBoxH);
+        Relocate(_appearanceBox, x, ContentY(RowY(Row.Appearance) + 36), width);
+        Relocate(_personalityBox, x, ContentY(RowY(Row.Personality) + 36), width);
+        Relocate(_loreBox, x, ContentY(RowY(Row.Lore) + 36), width);
+        Relocate(_socialTagsBox, x, ContentY(RowY(Row.SocialTags) + 36), width);
+        Relocate(_creditBox, x, ContentY(RowY(Row.Credit) + 36), width, ShortBoxH);
+
+        if (_cdExpanded && CanEditCharacterData)
+            Relocate(_nameBox, x, ContentY(RowY(Row.Name) + 36), width, ShortBoxH);
+        else
+            _nameBox.Bounds = new Rectangle(-100000, -100000, width, ShortBoxH);
     }
 
     private static void Relocate(MultilineTextBox box, int x, int y, int width, int height = TextBoxH)
@@ -190,6 +259,12 @@ public sealed class PersonalityEditModal : IClickableMenu
     }
 
     private int ContentY(int relativeY) => _scrollArea.Y + relativeY - _scrollY;
+
+    private void EnsureLayout()
+    {
+        BuildLayout();
+        LayoutTextBoxes();
+    }
 
     private void LoadState()
     {
@@ -317,7 +392,8 @@ public sealed class PersonalityEditModal : IClickableMenu
 
     private void DrawScrollableContent(SpriteBatch b)
     {
-        _maxScroll = Math.Max(0, ContentHeight - _scrollArea.Height);
+        BuildLayout();
+        _maxScroll = Math.Max(0, _contentHeight - _scrollArea.Height);
         _scrollY = Math.Clamp(_scrollY, 0, _maxScroll);
         LayoutTextBoxes();
 
@@ -328,18 +404,25 @@ public sealed class PersonalityEditModal : IClickableMenu
             new RasterizerState { ScissorTestEnable = true });
         b.GraphicsDevice.ScissorRectangle = _scrollArea;
 
-        DrawTextField(b, NameY, "field.display_name", _nameBox);
-        DrawSelectorRow(b, GenderY, "field.gender", _gender, Genders);
-        DrawSelectorRow(b, MannerY, "field.manner", _manner, Manners);
-        DrawSelectorRow(b, AnxietyY, "field.social_anxiety", _socialAnxiety, Anxieties, wrapLabel: true);
-        DrawSelectorRow(b, OptimismY, "field.optimism", _optimism, Optimisms);
-        DrawToggleRow(b, SocializeY, "field.can_socialize", _canSocialize);
-        DrawToggleRow(b, RomanceY, "field.can_be_romanced", _canBeRomanced, _age == 2);
-        DrawTextField(b, AppearanceY, "field.appearance", _appearanceBox);
-        DrawTextField(b, PersonalityY, "field.personality", _personalityBox);
-        DrawTextField(b, LoreY, "field.lore", _loreBox);
-        DrawTextField(b, SocialTagsY, "field.social_tags", _socialTagsBox);
-        DrawTextField(b, CreditY, "field.submission_credit", _creditBox);
+        // AliveNpcs personality fields (always visible, on top).
+        DrawTextField(b, RowY(Row.Appearance), "field.appearance", _appearanceBox);
+        DrawTextField(b, RowY(Row.Personality), "field.personality", _personalityBox);
+        DrawTextField(b, RowY(Row.Lore), "field.lore", _loreBox);
+        DrawTextField(b, RowY(Row.SocialTags), "field.social_tags", _socialTagsBox);
+        DrawTextField(b, RowY(Row.Credit), "field.submission_credit", _creditBox);
+
+        // Character Data overrides (collapsible, gated by the disclaimer opt-in).
+        DrawCdHeader(b);
+        if (_cdExpanded && CanEditCharacterData)
+        {
+            DrawTextField(b, RowY(Row.Name), "field.display_name", _nameBox);
+            DrawSelectorRow(b, RowY(Row.Gender), "field.gender", _gender, Genders);
+            DrawSelectorRow(b, RowY(Row.Manner), "field.manner", _manner, Manners);
+            DrawSelectorRow(b, RowY(Row.Anxiety), "field.social_anxiety", _socialAnxiety, Anxieties, wrapLabel: true);
+            DrawSelectorRow(b, RowY(Row.Optimism), "field.optimism", _optimism, Optimisms);
+            DrawToggleRow(b, RowY(Row.Socialize), "field.can_socialize", _canSocialize);
+            DrawToggleRow(b, RowY(Row.Romance), "field.can_be_romanced", _canBeRomanced, _age == 2);
+        }
 
         b.End();
         b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, previousRasterizer);
@@ -347,6 +430,46 @@ public sealed class PersonalityEditModal : IClickableMenu
 
         if (_maxScroll > 0)
             PersonalityEditorMenu.DrawScrollbar(b, _scrollArea, _scrollY, _maxScroll);
+    }
+
+    // The collapsible section header. Clickable to expand/collapse; shows a locked
+    // hint (and blocks expansion) until the Character Data disclaimer is enabled.
+    private void DrawCdHeader(SpriteBatch b)
+    {
+        var y = ContentY(RowY(Row.CdHeader));
+        var rect = new Rectangle(_scrollArea.X, y, _scrollArea.Width - 34, HeaderH);
+        _cdHeaderRect = rect;
+
+        var locked = !CanEditCharacterData;
+        EditorTheme.DrawFrame(b, rect, locked ? LockedPaper : Paper);
+
+        var label = _i18n.Get("field.character_data").ToString();
+        Utility.drawTextWithShadow(b, label, Game1.smallFont,
+            new Vector2(rect.X + 14, rect.Y + (rect.Height - Game1.smallFont.MeasureString(label).Y) / 2f),
+            locked ? Color.Gray : Border);
+
+        string right;
+        Color rightColor;
+        if (locked)
+        {
+            right = _i18n.Get("field.character_data.locked").ToString();
+            rightColor = Color.Gray;
+        }
+        else
+        {
+            right = _i18n.Get(_cdExpanded ? "field.character_data.collapse" : "field.character_data.expand").ToString();
+            rightColor = Active;
+        }
+
+        var rsize = Game1.smallFont.MeasureString(right);
+        var maxRight = rect.Width - 200;
+        if (rsize.X > maxRight)
+        {
+            right = Game1.parseText(right, Game1.smallFont, (int)maxRight);
+            rsize = Game1.smallFont.MeasureString(right);
+        }
+        Utility.drawTextWithShadow(b, right, Game1.smallFont,
+            new Vector2(rect.Right - rsize.X - 14, rect.Y + (rect.Height - rsize.Y) / 2f), rightColor);
     }
 
     private void DrawSelectorRow(SpriteBatch b, int relativeY, string labelKey, int selected, string[] options, bool wrapLabel = false)
@@ -427,7 +550,7 @@ public sealed class PersonalityEditModal : IClickableMenu
 
     public override void receiveLeftClick(int x, int y, bool playSound = true)
     {
-        LayoutTextBoxes();
+        EnsureLayout();
         if (_cancelButton.Contains(x, y))
         {
             Game1.playSound("bigDeSelect");
@@ -464,6 +587,22 @@ public sealed class PersonalityEditModal : IClickableMenu
             return;
         }
 
+        // Character Data section header: toggle, or block with a hint when locked.
+        if (_cdHeaderRect.Contains(x, y))
+        {
+            SetActiveField(ActiveField.None);
+            if (!CanEditCharacterData)
+            {
+                Game1.playSound("cancel");
+                Game1.addHUDMessage(new HUDMessage(_i18n.Get("field.character_data.locked"), 3));
+                return;
+            }
+            _cdExpanded = !_cdExpanded;
+            Game1.playSound(_cdExpanded ? "shwip" : "breathin");
+            EnsureLayout();
+            return;
+        }
+
         foreach (var (field, box) in TextBoxes())
         {
             if (!box.Bounds.Contains(x, y))
@@ -480,17 +619,20 @@ public sealed class PersonalityEditModal : IClickableMenu
 
     private bool HandleSelectorClick(int x, int y)
     {
-        var rows = new (int RelativeY, string[] Options, Action<int> Set)[]
+        if (!(_cdExpanded && CanEditCharacterData))
+            return false;
+
+        var rows = new (Row Row, string[] Options, Action<int> Set)[]
         {
-            (GenderY, Genders, value => _gender = value),
-            (MannerY, Manners, value => _manner = value),
-            (AnxietyY, Anxieties, value => _socialAnxiety = value),
-            (OptimismY, Optimisms, value => _optimism = value)
+            (Row.Gender, Genders, value => _gender = value),
+            (Row.Manner, Manners, value => _manner = value),
+            (Row.Anxiety, Anxieties, value => _socialAnxiety = value),
+            (Row.Optimism, Optimisms, value => _optimism = value)
         };
 
         foreach (var row in rows)
         {
-            var area = GetSelectorArea(ContentY(row.RelativeY));
+            var area = GetSelectorArea(ContentY(RowY(row.Row)));
             var gap = 24;
             var width = (area.Width - gap * (row.Options.Length - 1)) / row.Options.Length;
             for (var i = 0; i < row.Options.Length; i++)
@@ -502,13 +644,13 @@ public sealed class PersonalityEditModal : IClickableMenu
             }
         }
 
-        var socialize = new Rectangle(_scrollArea.Right - 90, ContentY(SocializeY), 58, SelectorH);
+        var socialize = new Rectangle(_scrollArea.Right - 90, ContentY(RowY(Row.Socialize)), 58, SelectorH);
         if (socialize.Contains(x, y))
         {
             _canSocialize = !_canSocialize;
             return true;
         }
-        var romance = new Rectangle(_scrollArea.Right - 90, ContentY(RomanceY), 58, SelectorH);
+        var romance = new Rectangle(_scrollArea.Right - 90, ContentY(RowY(Row.Romance)), 58, SelectorH);
         if (romance.Contains(x, y) && _age != 2)
         {
             _canBeRomanced = !_canBeRomanced;
@@ -538,7 +680,7 @@ public sealed class PersonalityEditModal : IClickableMenu
 
     public override void receiveScrollWheelAction(int direction)
     {
-        LayoutTextBoxes();
+        EnsureLayout();
         var mouse = Game1.getMousePosition();
         foreach (var (_, box) in TextBoxes())
         {

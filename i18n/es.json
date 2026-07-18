@@ -20,6 +20,7 @@
   "field.character_data": "Datos de Personaje",
   "field.character_data.expand": "Mostrar Datos de Personaje",
   "field.character_data.collapse": "Ocultar Datos de Personaje",
+  "field.character_data.locked": "Activa Datos de Personaje en la configuración del mod (GMCM) para editar estos campos.",
   "field.display_name": "Nombre para Mostrar",
   "field.gender": "Género",
   "field.gender.0": "Masculino",

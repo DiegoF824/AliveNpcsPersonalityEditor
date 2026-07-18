@@ -126,6 +126,9 @@ public sealed class PresetMetadata
     public string CreatedAt { get; set; } = "";
     public int DownloadCount { get; set; }
     public bool CanDelete { get; set; }
+
+    /// <summary>True when this preset writes the game's Data/Characters (set by the server list API).</summary>
+    public bool HasCharacterData { get; set; }
 }
 
 public sealed class PresetListResponse

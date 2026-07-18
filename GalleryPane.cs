@@ -437,6 +437,9 @@ public sealed class GalleryPane
         var aSize = Game1.tinyFont.MeasureString(author);
         var aPos = new Vector2(rect.X + (rect.Width - aSize.X) / 2f, rect.Bottom - aSize.Y - 8);
         Utility.drawTextWithShadow(b, author, Game1.tinyFont, aPos, Color.Yellow);
+
+        if (preset.HasCharacterData)
+            EditorTheme.DrawCharacterDataBadge(b, rect, _i18n.Get("indicator.character_data").ToString());
     }
 
     private static void DrawButton(SpriteBatch b, Rectangle rect, string label, Color background)
@@ -545,6 +548,9 @@ public sealed class GalleryPane
                 wrapped = string.Join("\n", lines.Take(2)).TrimEnd() + "…";
             b.DrawString(Game1.smallFont, wrapped, new Vector2(rect.X + 10, rect.Y + 108), Color.Black * 0.7f);
         }
+
+        if (preset.Entry.HasCharacterDataOverride)
+            EditorTheme.DrawCharacterDataBadge(b, rect, _i18n.Get("indicator.character_data").ToString());
     }
 
     private async void UploadLocal(string npc, NpcOverrideEntry entry)

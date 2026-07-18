@@ -55,6 +55,29 @@ internal static class EditorTheme
         b.Draw(Game1.fadeToBlackRect, new Rectangle(rect.Right - thickness, rect.Y, thickness, rect.Height), color);
     }
 
+    private static readonly Color CdAccent = new(214, 148, 46);   // amber accent
+    private static readonly Color CdBadgeText = new(74, 45, 20);   // dark brown, high contrast on amber
+
+    /// <summary>
+    /// Mark a card whose preset/override writes the game's Data/Characters: an amber
+    /// accent border plus a small labelled badge in the top-right corner.
+    /// </summary>
+    public static void DrawCharacterDataBadge(SpriteBatch b, Rectangle card, string label, int thickness = 3)
+    {
+        // Amber accent border (distinct from the neutral card frame).
+        b.Draw(Game1.fadeToBlackRect, new Rectangle(card.X, card.Y, card.Width, thickness), CdAccent);
+        b.Draw(Game1.fadeToBlackRect, new Rectangle(card.X, card.Bottom - thickness, card.Width, thickness), CdAccent);
+        b.Draw(Game1.fadeToBlackRect, new Rectangle(card.X, card.Y, thickness, card.Height), CdAccent);
+        b.Draw(Game1.fadeToBlackRect, new Rectangle(card.Right - thickness, card.Y, thickness, card.Height), CdAccent);
+
+        // Corner badge.
+        var size = Game1.smallFont.MeasureString(label);
+        const int padX = 8, padY = 3;
+        var badge = new Rectangle(card.Right - (int)size.X - padX * 2 - 6, card.Y + 6, (int)size.X + padX * 2, (int)size.Y + padY * 2);
+        b.Draw(Game1.staminaRect, badge, CdAccent);
+        b.DrawString(Game1.smallFont, label, new Vector2(badge.X + padX, badge.Y + padY), CdBadgeText);
+    }
+
     /// <summary>Draw a themed scrollbar (game runner + thumb sprites) beside an area.</summary>
     public static void DrawScrollbar(SpriteBatch b, Rectangle area, int scroll, int maxScroll)
     {
