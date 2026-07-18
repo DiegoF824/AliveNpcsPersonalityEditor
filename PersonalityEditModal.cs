@@ -71,14 +71,17 @@ public sealed class PersonalityEditModal : IClickableMenu
 
     // Vertical advance per row type, used by the dynamic layout pass.
     private const int TopPad = 8;
-    private const int TallTextBlock = 210;
-    private const int ShortTextBlock = 132;
-    private const int SelectorBlock = 86;
-    private const int WrapSelectorBlock = 104;
-    private const int ToggleBlock = 84;
-    private const int HeaderBlock = 60;
+    private const int TallTextBlock = 210;   // large text areas (appearance, personality, lore, social tags)
+    private const int ShortTextBlock = 132;  // short text field (submission credit)
     private const int SectionGap = 16;
     private const int HeaderH = 46;
+
+    // Character Data section (inside the brown panel).
+    private const int CdPad = 22;            // inner padding between the panel frame and its content
+    private const int HeaderBlock = 82;      // header row -> first CD row (leaves top padding inside the panel)
+    private const int CdNameBlock = 118;     // Display Name (short text)
+    private const int CdRowBlock = 76;       // selector / toggle rows (even vertical rhythm)
+    private const int CdWrapBlock = 90;      // rows whose label can wrap (social anxiety, can be romanced)
 
     private static readonly Color Paper = new(255, 248, 234);
     private static readonly Color Border = new(125, 60, 40);
@@ -93,6 +96,10 @@ public sealed class PersonalityEditModal : IClickableMenu
     private static readonly Color CdPanelLabel = new(245, 235, 214);   // light label text on the brown panel
 
     private Rectangle _cdButtonRect;
+
+    // Content bounds inside the Character Data panel, padded off the frame.
+    private int CdContentX => _scrollArea.X + CdPad;
+    private int CdContentW => _scrollArea.Width - 34 - CdPad * 2;
 
     private static readonly string[] Genders = { "field.gender.0", "field.gender.1" };
     private static readonly string[] Manners = { "field.manner.0", "field.manner.1", "field.manner.2" };
@@ -205,13 +212,13 @@ public sealed class PersonalityEditModal : IClickableMenu
 
         if (_cdExpanded && CanEditCharacterData)
         {
-            Place(Row.Name, ShortTextBlock);
-            Place(Row.Gender, SelectorBlock);
-            Place(Row.Manner, SelectorBlock);
-            Place(Row.Anxiety, WrapSelectorBlock);
-            Place(Row.Optimism, SelectorBlock);
-            Place(Row.Socialize, ToggleBlock);
-            Place(Row.Romance, ToggleBlock);
+            Place(Row.Name, CdNameBlock);
+            Place(Row.Gender, CdRowBlock);
+            Place(Row.Manner, CdRowBlock);
+            Place(Row.Anxiety, CdWrapBlock);
+            Place(Row.Optimism, CdRowBlock);
+            Place(Row.Socialize, CdRowBlock);
+            Place(Row.Romance, CdWrapBlock);
         }
 
         _contentHeight = y + 24;
@@ -253,7 +260,7 @@ public sealed class PersonalityEditModal : IClickableMenu
         Relocate(_creditBox, x, ContentY(RowY(Row.Credit) + 36), width, ShortBoxH);
 
         if (_cdExpanded && CanEditCharacterData)
-            Relocate(_nameBox, x, ContentY(RowY(Row.Name) + 36), width, ShortBoxH);
+            Relocate(_nameBox, CdContentX, ContentY(RowY(Row.Name) + 36), CdContentW, ShortBoxH);
         else
             _nameBox.Bounds = new Rectangle(-100000, -100000, width, ShortBoxH);
     }
@@ -419,9 +426,10 @@ public sealed class PersonalityEditModal : IClickableMenu
         // Character Data overrides (collapsible, gated by the disclaimer opt-in).
         if (_cdExpanded && CanEditCharacterData)
         {
-            // Brown background box grouping the override options (matches the original design).
-            var panelTop = ContentY(RowY(Row.Name)) - 12;
-            var panelBottom = ContentY(RowY(Row.Romance)) + SelectorH + 18;
+            // Brown background box grouping the override options (matches the original design),
+            // with even padding above the first field and below the last.
+            var panelTop = ContentY(RowY(Row.Name)) - CdPad;
+            var panelBottom = ContentY(RowY(Row.Romance)) + SelectorH + 14 + CdPad;
             drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
                 _scrollArea.X, panelTop, _scrollArea.Width - 34, panelBottom - panelTop, CdPanelBg);
         }
@@ -429,7 +437,7 @@ public sealed class PersonalityEditModal : IClickableMenu
         DrawCdHeader(b);
         if (_cdExpanded && CanEditCharacterData)
         {
-            DrawTextField(b, RowY(Row.Name), "field.display_name", _nameBox, CdPanelLabel);
+            DrawTextField(b, RowY(Row.Name), "field.display_name", _nameBox, CdPanelLabel, labelX: CdContentX);
             DrawSelectorRow(b, RowY(Row.Gender), "field.gender", _gender, Genders, labelColor: CdPanelLabel);
             DrawSelectorRow(b, RowY(Row.Manner), "field.manner", _manner, Manners, labelColor: CdPanelLabel);
             DrawSelectorRow(b, RowY(Row.Anxiety), "field.social_anxiety", _socialAnxiety, Anxieties, wrapLabel: true, labelColor: CdPanelLabel);
@@ -493,7 +501,7 @@ public sealed class PersonalityEditModal : IClickableMenu
         var label = _i18n.Get(labelKey).ToString();
         if (wrapLabel)
             label = Game1.parseText(label, Game1.smallFont, LabelColumnW - 12);
-        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(_scrollArea.X, y + 5), labelColor ?? Color.Black);
+        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(CdContentX, y + 5), labelColor ?? Color.Black);
 
         var area = GetSelectorArea(y);
         var gap = 24;
@@ -509,21 +517,22 @@ public sealed class PersonalityEditModal : IClickableMenu
     {
         var y = ContentY(relativeY);
         var label = Game1.parseText(_i18n.Get(labelKey), Game1.smallFont, LabelColumnW - 10);
-        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(_scrollArea.X, y), disabled ? Color.Gray : (labelColor ?? Color.Black));
-        var rect = new Rectangle(_scrollArea.Right - 90, y, 58, SelectorH);
+        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(CdContentX, y), disabled ? Color.Gray : (labelColor ?? Color.Black));
+        var rect = new Rectangle(CdContentX + CdContentW - 58, y, 58, SelectorH);
         DrawChoiceButton(b, rect, value ? "ON" : "OFF", value, disabled);
     }
 
-    private void DrawTextField(SpriteBatch b, int relativeY, string labelKey, MultilineTextBox box, Color? labelColor = null)
+    private void DrawTextField(SpriteBatch b, int relativeY, string labelKey, MultilineTextBox box, Color? labelColor = null, int? labelX = null)
     {
         Utility.drawTextWithShadow(b, _i18n.Get(labelKey), Game1.smallFont,
-            new Vector2(_scrollArea.X, ContentY(relativeY)), labelColor ?? Color.Black);
+            new Vector2(labelX ?? _scrollArea.X, ContentY(relativeY)), labelColor ?? Color.Black);
         box.Draw(b);
     }
 
+    // Selector/toggle buttons live inside the padded Character Data panel.
     private Rectangle GetSelectorArea(int absoluteY)
     {
-        return new Rectangle(_scrollArea.X + LabelColumnW, absoluteY, _scrollArea.Width - LabelColumnW - 34, SelectorH);
+        return new Rectangle(CdContentX + LabelColumnW, absoluteY, CdContentW - LabelColumnW, SelectorH);
     }
 
     private static void DrawChoiceButton(SpriteBatch b, Rectangle rect, string label, bool selected, bool disabled)
@@ -659,13 +668,13 @@ public sealed class PersonalityEditModal : IClickableMenu
             }
         }
 
-        var socialize = new Rectangle(_scrollArea.Right - 90, ContentY(RowY(Row.Socialize)), 58, SelectorH);
+        var socialize = new Rectangle(CdContentX + CdContentW - 58, ContentY(RowY(Row.Socialize)), 58, SelectorH);
         if (socialize.Contains(x, y))
         {
             _canSocialize = !_canSocialize;
             return true;
         }
-        var romance = new Rectangle(_scrollArea.Right - 90, ContentY(RowY(Row.Romance)), 58, SelectorH);
+        var romance = new Rectangle(CdContentX + CdContentW - 58, ContentY(RowY(Row.Romance)), 58, SelectorH);
         if (romance.Contains(x, y) && _age != 2)
         {
             _canBeRomanced = !_canBeRomanced;
