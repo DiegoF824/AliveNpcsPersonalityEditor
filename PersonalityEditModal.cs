@@ -325,6 +325,8 @@ public sealed class PersonalityEditModal : IClickableMenu
 
     private void LoadBaseCharacterData()
     {
+        var loadedFromApi = false;
+
         // Prefer AliveNpcs' pre-override snapshot: it's the true default even while an
         // override is currently baked into the live Data/Characters asset (so Reset works).
         try
@@ -339,7 +341,7 @@ public sealed class PersonalityEditModal : IClickableMenu
                 _optimism = snap[4];
                 _canSocialize = snap[5] != 0;
                 _canBeRomanced = snap[6] != 0;
-                return;
+                loadedFromApi = true;
             }
         }
         catch (Exception ex)
@@ -348,24 +350,53 @@ public sealed class PersonalityEditModal : IClickableMenu
         }
 
         // Fallback: read the live asset (fine when no override has ever been applied).
+        if (!loadedFromApi)
+        {
+            try
+            {
+                var characters = Game1.content.Load<Dictionary<string, StardewValley.GameData.Characters.CharacterData>>("Data/Characters");
+                if (characters.TryGetValue(_npcName, out var data))
+                {
+                    _gender = (int)data.Gender;
+                    _manner = (int)data.Manner;
+                    _socialAnxiety = (int)data.SocialAnxiety;
+                    _optimism = (int)data.Optimism;
+                    _age = (int)data.Age;
+                    _canSocialize = ResolveCanSocialize(data.CanSocialize);
+                    _canBeRomanced = data.CanBeRomanced;
+                }
+            }
+            catch (Exception ex)
+            {
+                _monitor.Log($"Could not read CharacterData for {_npcName}: {ex.Message}", LogLevel.Trace);
+            }
+        }
+
+        // CanSocialize is an optional game-state-query that DEFAULTS TO TRUE when unset.
+        // Resolve it from the raw asset so an unspecified (null) field shows ON, not OFF —
+        // the "TRUE"-string check / API 0-or-1 would otherwise render the default as OFF.
         try
         {
             var characters = Game1.content.Load<Dictionary<string, StardewValley.GameData.Characters.CharacterData>>("Data/Characters");
-            if (characters.TryGetValue(_npcName, out var data))
-            {
-                _gender = (int)data.Gender;
-                _manner = (int)data.Manner;
-                _socialAnxiety = (int)data.SocialAnxiety;
-                _optimism = (int)data.Optimism;
-                _age = (int)data.Age;
-                _canSocialize = string.Equals(data.CanSocialize, "TRUE", StringComparison.OrdinalIgnoreCase);
-                _canBeRomanced = data.CanBeRomanced;
-            }
+            if (characters.TryGetValue(_npcName, out var cd))
+                _canSocialize = ResolveCanSocialize(cd.CanSocialize);
         }
-        catch (Exception ex)
-        {
-            _monitor.Log($"Could not read CharacterData for {_npcName}: {ex.Message}", LogLevel.Trace);
-        }
+        catch { /* keep whatever was loaded above */ }
+    }
+
+    // Interpret the Data/Characters CanSocialize field. Unset (null/empty) means the
+    // vanilla default of true; "FALSE"/"TRUE" are the literal queries; anything else is
+    // a real game-state-query, evaluated with a true fallback.
+    private static bool ResolveCanSocialize(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return true;
+        if (raw.Equals("TRUE", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (raw.Equals("FALSE", StringComparison.OrdinalIgnoreCase))
+            return false;
+        try { return GameStateQuery.CheckConditions(raw); }
+        catch { return true; }
     }
 
     public override void draw(SpriteBatch b)
