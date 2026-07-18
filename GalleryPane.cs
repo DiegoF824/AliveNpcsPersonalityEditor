@@ -419,11 +419,7 @@ public sealed class GalleryPane
 
         const int portraitSize = 64;
         var portraitRect = new Rectangle(rect.X + (rect.Width - portraitSize) / 2, rect.Y + 34, portraitSize, portraitSize);
-        var portrait = _portraits.GetValueOrDefault(preset.NpcName);
-        if (portrait != null)
-            b.Draw(portrait, portraitRect, new Rectangle(0, 0, 64, 64), Color.White);
-        else
-            b.Draw(Game1.staminaRect, portraitRect, Color.Black * 0.08f);
+        PortraitDraw.Draw(b, portraitRect, preset.NpcName, _portraits.GetValueOrDefault(preset.NpcName));
 
         // Description preview (two lines), same as the Local cards.
         var preview = string.IsNullOrWhiteSpace(preset.Preview) ? "" : preset.Preview;
@@ -534,11 +530,7 @@ public sealed class GalleryPane
 
         const int portraitSize = 64;
         var portraitRect = new Rectangle(rect.X + (rect.Width - portraitSize) / 2, rect.Y + 34, portraitSize, portraitSize);
-        var portrait = _portraits.GetValueOrDefault(preset.Npc);
-        if (portrait != null)
-            b.Draw(portrait, portraitRect, new Rectangle(0, 0, 64, 64), Color.White);
-        else
-            b.Draw(Game1.staminaRect, portraitRect, Color.Black * 0.08f);
+        PortraitDraw.Draw(b, portraitRect, preset.Npc, _portraits.GetValueOrDefault(preset.Npc));
 
         var preview = !string.IsNullOrWhiteSpace(preset.Entry.SubmissionCredit)
             ? preset.Entry.SubmissionCredit
@@ -951,9 +943,7 @@ public sealed class GalleryPreviewModal
 
         const int portraitSize = 120;
         var portraitRect = new Rectangle(_modal.X + 42, _modal.Y + 38, portraitSize, portraitSize);
-        var portrait = _portraits.GetValueOrDefault(_npcName);
-        if (portrait != null)
-            b.Draw(portrait, portraitRect, new Rectangle(0, 0, 64, 64), Color.White);
+        PortraitDraw.Draw(b, portraitRect, _npcName, _portraits.GetValueOrDefault(_npcName));
         PersonalityEditorMenu.DrawBorder(b, portraitRect, new Color(125, 60, 40), 4);
 
         Utility.drawTextWithShadow(b, _npcName, Game1.dialogueFont,

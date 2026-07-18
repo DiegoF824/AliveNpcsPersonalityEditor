@@ -414,11 +414,7 @@ public sealed class PersonalityEditorMenu : IClickableMenu
 
         var portraitSize = Math.Min(148, rect.Width - 24);
         var portraitRect = new Rectangle(rect.X + (rect.Width - portraitSize) / 2, rect.Bottom - portraitSize, portraitSize, portraitSize);
-        var portrait = _portraits.GetValueOrDefault(npcName);
-        if (portrait != null)
-            b.Draw(portrait, portraitRect, new Rectangle(0, 0, PortraitSourceSize, PortraitSourceSize), Color.White);
-        else
-            b.Draw(Game1.staminaRect, portraitRect, Color.Black * 0.08f);
+        PortraitDraw.Draw(b, portraitRect, npcName, _portraits.GetValueOrDefault(npcName));
     }
 
     private void DrawGalleryUnavailable(SpriteBatch b)

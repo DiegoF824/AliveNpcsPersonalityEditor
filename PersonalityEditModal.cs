@@ -312,10 +312,7 @@ public sealed class PersonalityEditModal : IClickableMenu
             new Vector2(_portraitCard.X + (_portraitCard.Width - nameSize.X) / 2f, _portraitCard.Y + 8), Color.Black);
 
         var portraitRect = new Rectangle(_portraitCard.X + 18, _portraitCard.Y + 43, _portraitCard.Width - 36, _portraitCard.Height - 43);
-        if (_portrait != null)
-            b.Draw(_portrait, portraitRect, new Rectangle(0, 0, 64, 64), Color.White);
-        else
-            b.Draw(Game1.staminaRect, portraitRect, Color.Black * 0.08f);
+        PortraitDraw.Draw(b, portraitRect, _npcName, _portrait);
     }
 
     private void DrawScrollableContent(SpriteBatch b)
