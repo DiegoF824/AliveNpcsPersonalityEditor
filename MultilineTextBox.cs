@@ -30,22 +30,26 @@ internal sealed class MultilineTextBox : IKeyboardSubscriber
     }
     public int TextLimit { get; set; } = 100000;
     public bool Selected { get; set; }
+    public Color BackgroundColor { get; set; } = new(255, 248, 232);
+    public Color BorderColor { get; set; } = new(125, 60, 40);
+
+    // Inner padding that keeps text clear of the themed wooden frame border.
+    private const int PadX = 16;
+    private const int PadY = 14;
+    private int InnerHeight => Math.Max(1, Bounds.Height - PadY * 2);
+    private int LineHeight => (int)_font.MeasureString("A").Y;
+    private int VisibleLines => Math.Max(1, InnerHeight / LineHeight);
 
     public void Scroll(int direction)
     {
         _scrollLine -= Math.Sign(direction);
         var lines = GetWrappedLines();
-        var lineHeight = (int)_font.MeasureString("A").Y;
-        var visibleLines = Math.Max(1, (Bounds.Height - 8) / lineHeight);
-        _scrollLine = Math.Clamp(_scrollLine, 0, Math.Max(0, lines.Count - visibleLines));
+        _scrollLine = Math.Clamp(_scrollLine, 0, Math.Max(0, lines.Count - VisibleLines));
     }
 
     public bool NeedsScroll()
     {
-        var lines = GetWrappedLines();
-        var lineHeight = (int)_font.MeasureString("A").Y;
-        var visibleLines = Math.Max(1, (Bounds.Height - 8) / lineHeight);
-        return lines.Count > visibleLines;
+        return GetWrappedLines().Count > VisibleLines;
     }
 
     public MultilineTextBox(Rectangle bounds, SpriteFont font, Color textColor)
@@ -58,8 +62,8 @@ internal sealed class MultilineTextBox : IKeyboardSubscriber
     public void Draw(SpriteBatch b)
     {
         var lines = GetWrappedLines();
-        var lineHeight = (int)_font.MeasureString("A").Y;
-        var visibleLines = Math.Max(1, (Bounds.Height - 8) / lineHeight);
+        var lineHeight = LineHeight;
+        var visibleLines = VisibleLines;
 
         // Only clamp scroll to caret when selected; allow free scroll when not
         if (Selected)
@@ -74,38 +78,38 @@ internal sealed class MultilineTextBox : IKeyboardSubscriber
 
         var firstLine = _scrollLine;
 
-        b.Draw(Game1.staminaRect, Bounds, Color.Black * 0.18f);
-        b.Draw(Game1.staminaRect, new Rectangle(Bounds.X, Bounds.Y, Bounds.Width, 1), Color.Wheat * 0.75f);
-        b.Draw(Game1.staminaRect, new Rectangle(Bounds.X, Bounds.Bottom - 1, Bounds.Width, 1), Color.Wheat * 0.75f);
+        // Themed sunken input frame (honours UI-reskin mods).
+        EditorTheme.DrawInputFrame(b, Bounds, Selected);
 
         for (var i = firstLine; i < lines.Count && i < firstLine + visibleLines; i++)
         {
             var line = lines[i];
             var display = Text.Substring(line.Start, line.Length).TrimEnd();
-            var y = Bounds.Y + 4 + (i - firstLine) * lineHeight;
-            b.DrawString(_font, display, new Vector2(Bounds.X + 4, y), _textColor);
+            var y = Bounds.Y + PadY + (i - firstLine) * lineHeight;
+            b.DrawString(_font, display, new Vector2(Bounds.X + PadX, y), _textColor);
         }
 
-        if (!Selected || DateTime.UtcNow.Millisecond >= 500)
-            return;
-
-        var caretLine = FindCursorLine(lines);
-        var curLine = Math.Clamp(caretLine, firstLine, firstLine + visibleLines - 1);
-        var current = lines[curLine];
-        var charactersBeforeCursor = Math.Clamp(_cursor - current.Start, 0, current.Length);
-        var before = Text.Substring(current.Start, charactersBeforeCursor).TrimEnd();
-        var caretX = Bounds.X + 4 + (int)_font.MeasureString(before).X;
-        var caretY = Bounds.Y + 4 + (curLine - firstLine) * lineHeight;
-        b.Draw(Game1.staminaRect, new Rectangle(caretX, caretY, 2, lineHeight), _textColor);
+        if (Selected && DateTime.UtcNow.Millisecond < 500)
+        {
+            var caretLine = FindCursorLine(lines);
+            var curLine = Math.Clamp(caretLine, firstLine, firstLine + visibleLines - 1);
+            var current = lines[curLine];
+            var charactersBeforeCursor = Math.Clamp(_cursor - current.Start, 0, current.Length);
+            var before = Text.Substring(current.Start, charactersBeforeCursor);
+            var caretX = Bounds.X + PadX + (int)_font.MeasureString(before).X;
+            var caretY = Bounds.Y + PadY + (curLine - firstLine) * lineHeight;
+            b.Draw(Game1.staminaRect, new Rectangle(caretX, caretY, 2, lineHeight), _textColor);
+        }
 
         // Draw scrollbar if content overflows
         if (lines.Count > visibleLines)
         {
-            var barX = Bounds.Right - 4;
-            var barH = Bounds.Height;
+            var barX = Bounds.Right - PadX + 2;
+            var barY = Bounds.Y + PadY;
+            var barH = InnerHeight;
             var thumbH = Math.Max(12, barH * visibleLines / lines.Count);
-            var thumbY = Bounds.Y + (int)((float)_scrollLine / Math.Max(1, lines.Count - visibleLines) * (barH - thumbH));
-            b.Draw(Game1.staminaRect, new Rectangle(barX, Bounds.Y, 3, barH), Color.Black * 0.1f);
+            var thumbY = barY + (int)((float)_scrollLine / Math.Max(1, lines.Count - visibleLines) * (barH - thumbH));
+            b.Draw(Game1.staminaRect, new Rectangle(barX, barY, 3, barH), Color.Black * 0.1f);
             b.Draw(Game1.staminaRect, new Rectangle(barX, thumbY, 3, thumbH), _textColor * 0.4f);
         }
     }
@@ -113,12 +117,12 @@ internal sealed class MultilineTextBox : IKeyboardSubscriber
     public void SetCursorFromClick(int x, int y)
     {
         var lines = GetWrappedLines();
-        var lineHeight = (int)_font.MeasureString("A").Y;
-        var visibleLines = Math.Max(1, (Bounds.Height - 8) / lineHeight);
+        var lineHeight = LineHeight;
+        var visibleLines = VisibleLines;
         var firstLine = Math.Clamp(_scrollLine, 0, Math.Max(0, lines.Count - visibleLines));
-        var lineIndex = Math.Clamp(firstLine + (y - Bounds.Y - 4) / lineHeight, firstLine, Math.Min(firstLine + visibleLines - 1, lines.Count - 1));
+        var lineIndex = Math.Clamp(firstLine + (y - Bounds.Y - PadY) / lineHeight, firstLine, Math.Min(firstLine + visibleLines - 1, lines.Count - 1));
         var line = lines[lineIndex];
-        var targetX = Math.Max(0, x - Bounds.X - 4);
+        var targetX = Math.Max(0, x - Bounds.X - PadX);
         var position = line.Start;
 
         while (position < line.Start + line.Length
@@ -194,7 +198,7 @@ internal sealed class MultilineTextBox : IKeyboardSubscriber
 
         var cur = lines[currentLine];
         var charsBeforeCursor = Math.Clamp(_cursor - cur.Start, 0, cur.Length);
-        var pixelOffset = _font.MeasureString(Text.Substring(cur.Start, charsBeforeCursor).TrimEnd()).X;
+        var pixelOffset = _font.MeasureString(Text.Substring(cur.Start, charsBeforeCursor)).X;
 
         var target = lines[targetLine];
         var position = target.Start;
@@ -255,7 +259,7 @@ internal sealed class MultilineTextBox : IKeyboardSubscriber
     private List<WrappedLine> GetWrappedLines()
     {
         var lines = new List<WrappedLine>();
-        var maxWidth = Bounds.Width - 8;
+        var maxWidth = Bounds.Width - PadX * 2;
         var start = 0;
 
         while (start < Text.Length)

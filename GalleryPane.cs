@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AliveNpcsPersonalityEditor.Models;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,57 +8,62 @@ using StardewValley.Menus;
 
 namespace AliveNpcsPersonalityEditor;
 
+/// <summary>Community catalog rendered inside the Catalog tab.</summary>
 public sealed class GalleryPane
 {
     private readonly GalleryService _service;
     private readonly PersonalityStore _store;
-    private readonly PresetStore? _presetStore;
     private readonly Dictionary<string, Texture2D?> _portraits;
     private readonly ITranslationHelper _i18n;
     private readonly IMonitor _monitor;
-    private readonly System.Func<Rectangle> _getContentArea;
-    private readonly string _serverUrl;
-
+    private readonly Func<Rectangle> _getContentArea;
+    private readonly Action _onImported;
+    private readonly Action<NpcOverrideEntry>? _applyFarmerSheet;
+    private readonly PresetStore? _presetStore;
     private readonly List<PresetMetadata> _presets = new();
+    private readonly SearchSubscriber _search = new();
+
     private int _currentPage;
     private bool _loading;
     private bool _hasMore = true;
     private string? _searchQuery;
-    private string _searchInput = "";
-    private bool _searchFocused;
     private int _scrollY;
     private int _maxScroll;
-
-    private const int MinCardW = 180;
-    private const int CardH = 180;
-    private const int CardGap = 10;
-    private const int TitleH = 32;
-    private const int UrlH = 24;
-    private const int SwitchH = 32;
-    private const int FilterH = 34;
-    private const int SearchH = 32;
-
+    private int _mode; // 0 = Discover (server), 1 = Local (saved presets)
+    private Rectangle _discoverButton;
+    private Rectangle _localButton;
+    private Rectangle _npcFilterButton;
     private Rectangle _searchBox;
-    private Rectangle _searchBtn;
-    private Rectangle _refreshBtn;
-    private Rectangle _npcFilterBtn;
-    private Rectangle _browseSwitchBtn;
-    private Rectangle _uploadSwitchBtn;
-    private bool _npcFilterOpen;
-    private int _npcFilterIndex = -1; // -1 = All NPCs
-    private List<string> _npcFilterNames = new();
-    private int _galleryMode = 0; // 0 = Browse, 1 = Upload
-    private GalleryPreviewModal? _previewModal;
+    private Rectangle _searchButton;
+    private GalleryPreviewModal? _preview;
 
-    // Upload mode state
-    private List<(string NpcName, NpcOverrideEntry Entry)> _localPresets = new();
-    private List<(string NpcName, NpcOverrideEntry Entry)> _filteredLocal = new();
-    private string _localSearchInput = "";
-    private int _localNpcFilterIndex = -1;
-    private int _localScrollY;
-    private int _localMaxScroll;
-    private readonly List<Rectangle> _uploadBtnRects = new();
-    private readonly List<Rectangle> _deleteBtnRects = new();
+    // NPC filter dropdown (replaces the old "All" button).
+    private readonly List<string> _npcFilterNames = new();
+    private int _npcFilterIndex;   // 0 = All NPCs
+    private bool _npcFilterOpen;
+    private int _npcDropScroll;
+    private const int DropItemH = 34;
+
+    // In-UI server URL editor (avoids a GMCM trip).
+    private readonly Action<string>? _onServerUrlSaved;
+    private Rectangle _serverButton;
+    private bool _editingServer;
+    private readonly SearchSubscriber _urlSub = new() { MaxLength = 300 };
+    private Rectangle _urlBox;
+    private Rectangle _urlSaveButton;
+    private Rectangle _urlCancelButton;
+
+    // Local-preset (Manage) mode state.
+    private readonly List<(string Id, string Npc, NpcOverrideEntry Entry)> _localPresets = new();
+
+    private const int DiscoverH = 44;
+    private const int SearchH = 40;
+    private const int CardSize = 194;
+    private const int CardRowGap = 32;
+    private static readonly Color Active = new(235, 155, 45);
+    private static readonly Color Paper = new(255, 248, 234);
+    private static readonly Color Border = new(125, 60, 40);
+    private static readonly Color CardBg = new(222, 195, 153); // original card frame tint
 
     public GalleryPane(
         GalleryService service,
@@ -69,45 +71,56 @@ public sealed class GalleryPane
         Dictionary<string, Texture2D?> portraits,
         ITranslationHelper i18n,
         IMonitor monitor,
-        System.Func<Rectangle> getContentArea,
+        Func<Rectangle> getContentArea,
         string serverUrl,
-        PresetStore? presetStore = null)
+        PresetStore? presetStore = null,
+        Action? onImported = null,
+        Action<NpcOverrideEntry>? applyFarmerSheet = null,
+        Action<string>? onServerUrlSaved = null)
     {
         _service = service;
         _store = store;
-        _presetStore = presetStore;
         _portraits = portraits;
         _i18n = i18n;
         _monitor = monitor;
         _getContentArea = getContentArea;
-        _serverUrl = serverUrl;
+        _onImported = onImported ?? (() => { });
+        _applyFarmerSheet = applyFarmerSheet;
+        _onServerUrlSaved = onServerUrlSaved;
+        _presetStore = presetStore;
+        if (!string.IsNullOrWhiteSpace(serverUrl))
+            _service.SetBaseUrl(serverUrl);
 
-        _npcFilterNames = new List<string> { _i18n.Get("gallery.filter.all_npcs") };
-        _npcFilterNames.AddRange(portraits.Keys.OrderBy(n => n));
+        _npcFilterNames.Add(_i18n.Get("gallery.filter.all_npcs").ToString());
+        _npcFilterNames.AddRange(portraits.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
 
         _ = FetchPageAsync();
     }
 
-    private async Task FetchPageAsync(string? query = null)
+    private string? NpcFilter =>
+        _npcFilterIndex > 0 && _npcFilterIndex < _npcFilterNames.Count ? _npcFilterNames[_npcFilterIndex] : null;
+
+    private async Task FetchPageAsync()
     {
+        if (_loading || !_hasMore)
+            return;
         _loading = true;
         try
         {
-            var npcFilter = _npcFilterIndex > 0 ? _npcFilterNames[_npcFilterIndex] : null;
-            var response = await _service.SearchPresetsAsync(query, _currentPage + 1, npcFilter: npcFilter);
-            if (response != null)
+            var response = await _service.SearchPresetsAsync(_searchQuery, _currentPage + 1, npcFilter: NpcFilter);
+            if (response == null)
             {
-                _presets.AddRange(response.Presets);
-                _hasMore = response.Presets.Count >= response.Limit;
-                _currentPage = response.Page;
-                UpdateMaxScroll();
+                if (_currentPage == 0)
+                    _hasMore = false;
+                return;
             }
-            else if (_currentPage == 0)
-            {
-                _hasMore = false;
-            }
+
+            _presets.AddRange(response.Presets);
+            _currentPage = response.Page;
+            _hasMore = response.Presets.Count >= response.Limit;
+            UpdateMaxScroll();
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             _monitor.Log($"Gallery fetch error: {ex.Message}", LogLevel.Warn);
         }
@@ -117,31 +130,30 @@ public sealed class GalleryPane
         }
     }
 
-    private async Task SearchAsync(string? query)
+    private async Task SearchAsync()
     {
         _loading = true;
         _presets.Clear();
         _currentPage = 0;
         _hasMore = true;
         _scrollY = 0;
-        _searchQuery = query;
-
-        var npcFilter = _npcFilterIndex > 0 ? _npcFilterNames[_npcFilterIndex] : null;
-
+        _searchQuery = string.IsNullOrWhiteSpace(_search.Text) ? null : _search.Text.Trim();
         try
         {
-            var response = await _service.SearchPresetsAsync(
-                !string.IsNullOrWhiteSpace(query) ? query : null,
-                1, npcFilter: npcFilter);
+            var response = await _service.SearchPresetsAsync(_searchQuery, 1, npcFilter: NpcFilter);
             if (response != null)
             {
                 _presets.AddRange(response.Presets);
-                _hasMore = response.Presets.Count >= response.Limit;
                 _currentPage = response.Page;
-                UpdateMaxScroll();
+                _hasMore = response.Presets.Count >= response.Limit;
             }
+            else
+            {
+                _hasMore = false;
+            }
+            UpdateMaxScroll();
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             _monitor.Log($"Gallery search error: {ex.Message}", LogLevel.Warn);
         }
@@ -151,806 +163,958 @@ public sealed class GalleryPane
         }
     }
 
-    private async Task RefreshAsync()
-    {
-        _loading = true;
-        _presets.Clear();
-        _currentPage = 0;
-        _hasMore = true;
-        _scrollY = 0;
-
-        var npcFilter = _npcFilterIndex > 0 ? _npcFilterNames[_npcFilterIndex] : null;
-
-        try
-        {
-            var response = await _service.SearchPresetsAsync(_searchQuery, 1, npcFilter: npcFilter);
-            if (response != null)
-            {
-                _presets.AddRange(response.Presets);
-                _hasMore = response.Presets.Count >= response.Limit;
-                _currentPage = response.Page;
-                UpdateMaxScroll();
-            }
-        }
-        catch (System.Exception ex)
-        {
-            _monitor.Log($"Gallery refresh error: {ex.Message}", LogLevel.Warn);
-        }
-        finally
-        {
-            _loading = false;
-        }
-    }
-
-    private (int cols, int cardW, int startX, int gridTop) GetGridLayout()
+    private (Rectangle GridArea, int Columns, int Gap, int StartX) GetGridLayout()
     {
         var area = _getContentArea();
-        var gridTop = area.Y + TitleH + UrlH + SwitchH + FilterH + SearchH + 20;
+        var gridTop = area.Y + DiscoverH + 92;
         var gridArea = new Rectangle(area.X, gridTop, area.Width, area.Bottom - gridTop);
+        var columns = Math.Clamp((gridArea.Width + 40) / (CardSize + 40), 1, 4);
+        var gap = columns > 1 ? (gridArea.Width - columns * CardSize) / (columns - 1) : 0;
+        var used = columns * CardSize + Math.Max(0, columns - 1) * gap;
+        return (gridArea, columns, gap, gridArea.X + (gridArea.Width - used) / 2);
+    }
 
-        var cols = System.Math.Max(2, (gridArea.Width + CardGap) / (MinCardW + CardGap));
-        var cardW = (gridArea.Width - (cols - 1) * CardGap) / cols;
-        var contentW = cols * cardW + (cols - 1) * CardGap;
-        var startX = gridArea.X + (gridArea.Width - contentW) / 2;
-
-        return (cols, cardW, startX, gridTop);
+    private Rectangle GetCardRect(int index, (Rectangle GridArea, int Columns, int Gap, int StartX) layout)
+    {
+        var column = index % layout.Columns;
+        var row = index / layout.Columns;
+        return new Rectangle(
+            layout.StartX + column * (CardSize + layout.Gap),
+            layout.GridArea.Y + row * (CardSize + CardRowGap) - _scrollY,
+            CardSize,
+            CardSize);
     }
 
     public void Draw(SpriteBatch b)
     {
         var area = _getContentArea();
 
-        // Title
-        var title = _i18n.Get("gallery.title");
-        var titleSize = Game1.dialogueFont.MeasureString(title);
-        Utility.drawTextWithShadow(b, title, Game1.dialogueFont,
-            new Vector2(area.X + (area.Width - titleSize.X) / 2f, area.Y), Color.SaddleBrown);
+        // Mode toggle: Discover (community server) | Local (saved presets).
+        const int modeW = 170;
+        _discoverButton = new Rectangle(area.X, area.Y, modeW, DiscoverH);
+        _localButton = new Rectangle(area.X + modeW + 12, area.Y, modeW, DiscoverH);
+        DrawButton(b, _discoverButton, _i18n.Get("tab.discover"), _mode == 0 ? Active : Paper);
+        DrawButton(b, _localButton, _i18n.Get("tab.local"), _mode == 1 ? Active : Paper);
 
-        // Server URL display
-        var urlLabel = _i18n.Get("gallery.server_url");
-        var urlY = area.Y + TitleH;
-        Utility.drawTextWithShadow(b, $"{urlLabel}: {_serverUrl}", Game1.smallFont,
-            new Vector2(area.X + 8, urlY), Color.Gray);
+        _serverButton = new Rectangle(area.Right - 150, area.Y, 150, DiscoverH);
+        DrawButton(b, _serverButton, _i18n.Get("gallery.server.button"), Paper);
 
-        // Browse / Manage switch buttons
-        var switchY = urlY + UrlH;
-        var switchW = 100;
-        var switchH = SwitchH;
-        var browseRect = new Rectangle(area.X + 8, switchY, switchW, switchH);
-        var uploadRect = new Rectangle(area.X + 8 + switchW + 6, switchY, switchW, switchH);
-        _browseSwitchBtn = browseRect;
-        _uploadSwitchBtn = uploadRect;
+        var controlsY = area.Y + DiscoverH + 26;
+        _npcFilterButton = new Rectangle(area.X, controlsY, 200, SearchH);
+        DrawFilterButton(b);
 
-        DrawTabSwitch(b, browseRect, _i18n.Get("gallery.mode.browse"), _galleryMode == 0);
-        DrawTabSwitch(b, uploadRect, _i18n.Get("gallery.mode.manage"), _galleryMode == 1);
+        _searchButton = new Rectangle(area.Right - 120, controlsY, 120, SearchH);
+        _searchBox = new Rectangle(_npcFilterButton.Right + 16, controlsY,
+            _searchButton.X - 16 - (_npcFilterButton.Right + 16), SearchH);
+        EditorTheme.DrawInputFrame(b, _searchBox, _search.Selected);
 
-        // NPC filter dropdown + Refresh button on same row
-        var filterY = switchY + SwitchH + 6;
-        var filterRect = new Rectangle(area.X + 8, filterY, 180, FilterH);
-        _npcFilterBtn = filterRect;
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            filterRect.X, filterRect.Y, filterRect.Width, filterRect.Height,
-            _npcFilterOpen ? new Color(190, 160, 100) : new Color(200, 170, 130));
-        var filterLabelIndex = _galleryMode == 1 ? _localNpcFilterIndex : _npcFilterIndex;
-        var filterLabel = filterLabelIndex >= 0 && filterLabelIndex < _npcFilterNames.Count
-            ? _npcFilterNames[filterLabelIndex] : _i18n.Get("gallery.filter.all_npcs");
-        var fSize = Game1.smallFont.MeasureString(filterLabel);
-        Utility.drawTextWithShadow(b, filterLabel, Game1.smallFont,
-            new Vector2(filterRect.X + 8, filterRect.Y + (filterRect.Height - fSize.Y) / 2f),
-            Color.Black * 0.85f);
-        Utility.drawTextWithShadow(b, "v", Game1.smallFont,
-            new Vector2(filterRect.Right - 16, filterRect.Y + (filterRect.Height - fSize.Y) / 2f), Color.Gray);
-
-        // Refresh button (same row, right-aligned)
-        var refBtnRect = new Rectangle(area.Right - 90, filterY, 82, FilterH);
-        _refreshBtn = refBtnRect;
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            refBtnRect.X, refBtnRect.Y, refBtnRect.Width, refBtnRect.Height, new Color(170, 120, 60));
-        var refText = _i18n.Get("gallery.button.refresh");
-        var refSize = Game1.smallFont.MeasureString(refText);
-        Utility.drawTextWithShadow(b, refText, Game1.smallFont,
-            new Vector2(refBtnRect.X + (refBtnRect.Width - refSize.X) / 2f, refBtnRect.Y + (refBtnRect.Height - refSize.Y) / 2f),
-            Color.White);
-
-        // Search field + button on next row
-        var searchY = filterY + FilterH + 6;
-        var searchRect = new Rectangle(area.X + 8, searchY, area.Width - 100, SearchH);
-        _searchBox = searchRect;
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            searchRect.X, searchRect.Y, searchRect.Width, searchRect.Height,
-            _searchFocused ? new Color(190, 160, 100) : new Color(200, 170, 130));
-
-        var displaySearchInput = _galleryMode == 1 ? _localSearchInput : _searchInput;
-        if (string.IsNullOrEmpty(displaySearchInput) && !_searchFocused)
+        var textX = _searchBox.X + EditorTheme.FramePad;
+        var searchText = _search.Text;
+        if (string.IsNullOrEmpty(searchText) && !_search.Selected)
         {
-            var ph = _galleryMode == 1
-                ? _i18n.Get("gallery.upload.search_placeholder")
-                : _i18n.Get("gallery.browse.search_placeholder");
-            Utility.drawTextWithShadow(b, ph, Game1.smallFont,
-                new Vector2(searchRect.X + 8, searchRect.Y + (searchRect.Height - Game1.smallFont.MeasureString(ph).Y) / 2f), Color.Gray);
+            searchText = _i18n.Get("gallery.browse.search_placeholder");
+            b.DrawString(Game1.smallFont, searchText,
+                new Vector2(textX, _searchBox.Y + 8), Color.Gray);
         }
         else
         {
-            var inputSize = Game1.smallFont.MeasureString(displaySearchInput);
-            b.DrawString(Game1.smallFont, displaySearchInput,
-                new Vector2(searchRect.X + 8, searchRect.Y + (searchRect.Height - inputSize.Y) / 2f), Color.Black * 0.85f);
+            b.DrawString(Game1.smallFont, searchText,
+                new Vector2(textX, _searchBox.Y + 8), Color.Black);
         }
 
-        if (_searchFocused && (Game1.currentGameTime.TotalGameTime.TotalMilliseconds / 500) % 2 == 0)
+        if (_search.Selected && DateTime.UtcNow.Millisecond < 500)
         {
-            var cursorX = searchRect.X + 8 + (int)Game1.smallFont.MeasureString(displaySearchInput).X;
-            b.Draw(Game1.staminaRect, new Rectangle(cursorX, searchRect.Y + 6, 1, SearchH - 12), Color.Black * 0.6f);
+            var cursorX = textX + (int)Game1.smallFont.MeasureString(_search.Text).X;
+            b.Draw(Game1.staminaRect, new Rectangle(cursorX, _searchBox.Y + 7, 2, SearchH - 14), Color.Black);
         }
+        DrawButton(b, _searchButton, _i18n.Get("gallery.browse.search"), Paper);
 
-        var sBtnRect = new Rectangle(area.Right - 90, searchY, 82, SearchH);
-        _searchBtn = sBtnRect;
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            sBtnRect.X, sBtnRect.Y, sBtnRect.Width, sBtnRect.Height, new Color(170, 120, 60));
-        var sText = _i18n.Get("gallery.browse.search");
-        var sSize = Game1.smallFont.MeasureString(sText);
-        Utility.drawTextWithShadow(b, sText, Game1.smallFont,
-            new Vector2(sBtnRect.X + (sBtnRect.Width - sSize.X) / 2f, sBtnRect.Y + (sBtnRect.Height - sSize.Y) / 2f),
-            Color.White);
+        if (_mode == 1)
+            DrawLocalCards(b);
+        else
+            DrawCards(b);
 
-        // NPC filter dropdown popup (drawn on top of everything)
-        if (_npcFilterOpen)
-        {
-            var ddItemH = 26;
-            var ddH = System.Math.Min(_npcFilterNames.Count * ddItemH, 220);
-            var ddRect = new Rectangle(_npcFilterBtn.X, _npcFilterBtn.Bottom + 2, _npcFilterBtn.Width, ddH);
-            IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-                ddRect.X, ddRect.Y, ddRect.Width, ddRect.Height, new Color(245, 230, 200));
+        DrawNpcDropdown(b);
+        _preview?.Draw(b);
+        DrawServerEditor(b);
+    }
 
-            for (int i = 0; i < _npcFilterNames.Count; i++)
-            {
-                var itemY = ddRect.Y + i * ddItemH;
-                if (itemY + ddItemH > ddRect.Bottom) break;
-                var selected = i == (_galleryMode == 1 ? _localNpcFilterIndex : _npcFilterIndex);
-                if (selected)
-                    b.Draw(Game1.staminaRect, new Rectangle(ddRect.X + 2, itemY, ddRect.Width - 4, ddItemH), new Color(180, 150, 80) * 0.5f);
-                b.DrawString(Game1.smallFont, _npcFilterNames[i],
-                    new Vector2(ddRect.X + 8, itemY + (ddItemH - Game1.smallFont.MeasureString(_npcFilterNames[i]).Y) / 2f),
-                    selected ? Color.SaddleBrown : Color.Black * 0.7f);
-            }
-        }
-
-        if (_previewModal != null)
-        {
-            _previewModal.Draw(b);
+    private void DrawServerEditor(SpriteBatch b)
+    {
+        if (!_editingServer)
             return;
-        }
 
-        if (_galleryMode == 1)
+        var vp = Game1.uiViewport;
+        b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, vp.Width, vp.Height), Color.Black * 0.55f);
+
+        var w = Math.Min(600, vp.Width - 80);
+        const int h = 210;
+        var box = new Rectangle((vp.Width - w) / 2, (vp.Height - h) / 2, w, h);
+        EditorTheme.DrawFrame(b, box, Color.White);
+
+        Utility.drawTextWithShadow(b, _i18n.Get("gallery.config.server_url").ToString(), Game1.smallFont,
+            new Vector2(box.X + 24, box.Y + 20), Color.Black);
+
+        _urlBox = new Rectangle(box.X + 24, box.Y + 58, box.Width - 48, 46);
+        EditorTheme.DrawInputFrame(b, _urlBox, _urlSub.Selected);
+        b.DrawString(Game1.smallFont, _urlSub.Text,
+            new Vector2(_urlBox.X + EditorTheme.FramePad, _urlBox.Y + 11), Color.Black);
+        if (_urlSub.Selected && DateTime.UtcNow.Millisecond < 500)
         {
-            DrawUploadView(b, area, searchY);
-            return;
+            var cx = _urlBox.X + EditorTheme.FramePad + (int)Game1.smallFont.MeasureString(_urlSub.Text).X;
+            b.Draw(Game1.staminaRect, new Rectangle(cx, _urlBox.Y + 10, 2, 26), Color.Black);
         }
 
-        // Grid area
-        var (cols, cardW, startX, gridTop) = GetGridLayout();
-        var gridArea = new Rectangle(area.X, gridTop, area.Width, area.Bottom - gridTop);
+        _urlCancelButton = new Rectangle(box.X + 24, box.Bottom - 24 - 48, 170, 48);
+        _urlSaveButton = new Rectangle(box.Right - 24 - 170, box.Bottom - 24 - 48, 170, 48);
+        DrawButton(b, _urlCancelButton, _i18n.Get("button.cancel"), new Color(225, 125, 85));
+        DrawButton(b, _urlSaveButton, _i18n.Get("button.save"), new Color(120, 190, 100));
+    }
 
-        if (_loading && _presets.Count == 0)
+    private void OpenServerEditor()
+    {
+        Unsubscribe();
+        _npcFilterOpen = false;
+        _editingServer = true;
+        _urlSub.Text = _service.BaseUrl;
+        _urlSub.Selected = true;
+        Game1.keyboardDispatcher.Subscriber = _urlSub;
+    }
+
+    private void SaveServerUrl()
+    {
+        var url = _urlSub.Text.Trim();
+        if (!string.IsNullOrWhiteSpace(url))
         {
-            var loadingText = _i18n.Get("gallery.browse.loading");
-            var size = Game1.smallFont.MeasureString(loadingText);
-            Utility.drawTextWithShadow(b, loadingText, Game1.smallFont,
-                new Vector2(gridArea.X + (gridArea.Width - size.X) / 2f, gridArea.Y + 40), Color.Wheat);
+            _service.SetBaseUrl(url);
+            _onServerUrlSaved?.Invoke(url);         // persist to config
+            _presets.Clear();
+            _currentPage = 0;
+            _hasMore = true;
+            _scrollY = 0;
+            _ = FetchPageAsync();                   // reload from the new server
+            Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.server.saved"), 3));
+        }
+        CloseServerEditor();
+    }
+
+    private void CloseServerEditor()
+    {
+        _editingServer = false;
+        _urlSub.Selected = false;
+        if (Game1.keyboardDispatcher.Subscriber == _urlSub)
+            Game1.keyboardDispatcher.Subscriber = null;
+    }
+
+    private void DrawFilterButton(SpriteBatch b)
+    {
+        EditorTheme.DrawFrame(b, _npcFilterButton, _npcFilterOpen ? Active : Paper);
+        var label = _npcFilterIndex > 0 ? _npcFilterNames[_npcFilterIndex] : _i18n.Get("gallery.filter.all_npcs").ToString();
+        b.DrawString(Game1.smallFont, label,
+            new Vector2(_npcFilterButton.X + EditorTheme.FramePad, _npcFilterButton.Y + 9), Color.Black * 0.9f);
+        b.DrawString(Game1.smallFont, _npcFilterOpen ? "^" : "v",
+            new Vector2(_npcFilterButton.Right - 22, _npcFilterButton.Y + 9), Color.Black * 0.6f);
+    }
+
+    private Rectangle GetDropdownRect()
+    {
+        var area = _getContentArea();
+        var fullH = _npcFilterNames.Count * DropItemH;
+        var availH = Math.Max(DropItemH * 3, area.Bottom - (_npcFilterButton.Bottom + 4));
+        var h = Math.Min(fullH, availH);
+        return new Rectangle(_npcFilterButton.X, _npcFilterButton.Bottom + 4, Math.Max(_npcFilterButton.Width, 220), h);
+    }
+
+    private void DrawNpcDropdown(SpriteBatch b)
+    {
+        if (!_npcFilterOpen)
             return;
+
+        var dd = GetDropdownRect();
+        EditorTheme.DrawFrame(b, dd, new Color(250, 240, 220));
+        var inner = new Rectangle(dd.X + 8, dd.Y + 6, dd.Width - 16, dd.Height - 12);
+
+        var fullH = _npcFilterNames.Count * DropItemH;
+        var maxScroll = Math.Max(0, fullH - inner.Height);
+        _npcDropScroll = Math.Clamp(_npcDropScroll, 0, maxScroll);
+
+        var prevScissor = b.GraphicsDevice.ScissorRectangle;
+        var prevRasterizer = b.GraphicsDevice.RasterizerState;
+        b.End();
+        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null,
+            new RasterizerState { ScissorTestEnable = true });
+        b.GraphicsDevice.ScissorRectangle = inner;
+
+        for (var i = 0; i < _npcFilterNames.Count; i++)
+        {
+            var itemY = inner.Y + i * DropItemH - _npcDropScroll;
+            if (itemY + DropItemH < inner.Y || itemY > inner.Bottom)
+                continue;
+            if (i == _npcFilterIndex)
+                b.Draw(Game1.staminaRect, new Rectangle(inner.X, itemY, inner.Width, DropItemH), Active * 0.35f);
+            b.DrawString(Game1.smallFont, _npcFilterNames[i],
+                new Vector2(inner.X + 6, itemY + 6), i == _npcFilterIndex ? Color.Black : Color.Black * 0.75f);
         }
 
+        b.End();
+        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, prevRasterizer);
+        b.GraphicsDevice.ScissorRectangle = prevScissor;
+
+        if (maxScroll > 0)
+            PersonalityEditorMenu.DrawScrollbar(b, inner, _npcDropScroll, maxScroll);
+    }
+
+    private void ApplyNpcFilter()
+    {
+        _scrollY = 0;
+        if (_mode == 0)
+            _ = SearchAsync();  // re-query the server with the new NPC filter
+        // Local mode filters live in GetFilteredLocal().
+    }
+
+    private void DrawCards(SpriteBatch b)
+    {
+        var layout = GetGridLayout();
         if (_presets.Count == 0)
         {
-            var emptyText = _i18n.Get("gallery.browse.empty");
-            var size = Game1.smallFont.MeasureString(emptyText);
-            Utility.drawTextWithShadow(b, emptyText, Game1.smallFont,
-                new Vector2(gridArea.X + (gridArea.Width - size.X) / 2f, gridArea.Y + 40), Color.Wheat);
+            var key = _loading ? "gallery.browse.loading" : "gallery.browse.empty";
+            var message = _i18n.Get(key).ToString();
+            var size = Game1.smallFont.MeasureString(message);
+            Utility.drawTextWithShadow(b, message, Game1.smallFont,
+                new Vector2(layout.GridArea.X + (layout.GridArea.Width - size.X) / 2f, layout.GridArea.Y + 40),
+                Color.SaddleBrown);
             return;
         }
 
-        var prevScissor = b.GraphicsDevice.ScissorRectangle;
-        var prevRasterizer = b.GraphicsDevice.RasterizerState;
+        var previousScissor = b.GraphicsDevice.ScissorRectangle;
+        var previousRasterizer = b.GraphicsDevice.RasterizerState;
         b.End();
         b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null,
             new RasterizerState { ScissorTestEnable = true });
-        b.GraphicsDevice.ScissorRectangle = gridArea;
+        b.GraphicsDevice.ScissorRectangle = layout.GridArea;
 
-        for (int i = 0; i < _presets.Count; i++)
+        for (var i = 0; i < _presets.Count; i++)
         {
-            var col = i % cols;
-            var row = i / cols;
-            var cx = startX + col * (cardW + CardGap);
-            var cy = gridArea.Y + row * (CardH + CardGap) - _scrollY;
-
-            if (cy + CardH < gridArea.Y || cy > gridArea.Bottom)
+            var rect = GetCardRect(i, layout);
+            if (rect.Bottom < layout.GridArea.Top || rect.Top > layout.GridArea.Bottom)
                 continue;
-
-            DrawCard(b, _presets[i], cx, cy, cardW);
-        }
-
-        if (_loading && _presets.Count > 0)
-        {
-            var loadingText = _i18n.Get("gallery.browse.loading");
-            var lastRow = _presets.Count / cols;
-            var ly = gridArea.Y + lastRow * (CardH + CardGap) - _scrollY + CardH + 8;
-            Utility.drawTextWithShadow(b, loadingText, Game1.smallFont,
-                new Vector2(gridArea.X + (gridArea.Width - Game1.smallFont.MeasureString(loadingText).X) / 2f, ly),
-                Color.Wheat);
+            DrawCard(b, _presets[i], rect);
         }
 
         b.End();
-        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, prevRasterizer);
-        b.GraphicsDevice.ScissorRectangle = prevScissor;
+        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, previousRasterizer);
+        b.GraphicsDevice.ScissorRectangle = previousScissor;
+
+        if (_maxScroll > 0)
+            PersonalityEditorMenu.DrawScrollbar(b, layout.GridArea, _scrollY, _maxScroll);
     }
 
-    private void DrawTabSwitch(SpriteBatch b, Rectangle rect, string label, bool active)
+    private void DrawCard(SpriteBatch b, PresetMetadata preset, Rectangle rect)
     {
-        var color = active ? new Color(170, 120, 60) : new Color(200, 170, 130);
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            rect.X, rect.Y, rect.Width, rect.Height, color);
-        var size = Game1.smallFont.MeasureString(label);
-        Utility.drawTextWithShadow(b, label, Game1.smallFont,
-            new Vector2(rect.X + (rect.Width - size.X) / 2f, rect.Y + (rect.Height - size.Y) / 2f),
-            active ? Color.White : Color.Wheat);
-    }
-
-    private void DrawUploadView(SpriteBatch b, Rectangle area, int searchY)
-    {
-        _uploadBtnRects.Clear();
-        _deleteBtnRects.Clear();
-
-        if (_localPresets.Count == 0)
-            ReloadLocalPresets();
-
-        FilterLocalPresets();
-
-        var (cols, cardW, startX, gridTop) = GetGridLayout();
-        var gridArea = new Rectangle(area.X, gridTop, area.Width, area.Bottom - gridTop);
-
-        if (_filteredLocal.Count == 0)
-        {
-            var emptyText = _localPresets.Count == 0
-                ? _i18n.Get("gallery.upload.no_presets")
-                : _i18n.Get("gallery.browse.empty");
-            var size = Game1.smallFont.MeasureString(emptyText);
-            Utility.drawTextWithShadow(b, emptyText, Game1.smallFont,
-                new Vector2(gridArea.X + (gridArea.Width - size.X) / 2f, gridArea.Y + 40), Color.Wheat);
-            return;
-        }
-
-        var prevScissor = b.GraphicsDevice.ScissorRectangle;
-        var prevRasterizer = b.GraphicsDevice.RasterizerState;
-        b.End();
-        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null,
-            new RasterizerState { ScissorTestEnable = true });
-        b.GraphicsDevice.ScissorRectangle = gridArea;
-
-        for (int i = 0; i < _filteredLocal.Count; i++)
-        {
-            var col = i % cols;
-            var row = i / cols;
-            var cx = startX + col * (cardW + CardGap);
-            var cy = gridArea.Y + row * (CardH + CardGap) - _localScrollY;
-
-            if (cy + CardH < gridArea.Y || cy > gridArea.Bottom)
-                continue;
-
-            DrawLocalPresetCard(b, _filteredLocal[i], cx, cy, cardW, i);
-        }
-
-        b.End();
-        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, prevRasterizer);
-        b.GraphicsDevice.ScissorRectangle = prevScissor;
-    }
-
-    private void DrawLocalPresetCard(SpriteBatch b, (string NpcName, NpcOverrideEntry Entry) preset, int cx, int cy, int cardW, int index)
-    {
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            cx, cy, cardW, CardH, new Color(222, 195, 153));
-
-        var portrait = _portraits.GetValueOrDefault(preset.NpcName);
-        var portraitSize = 36;
-        var portraitX = cx + (cardW - portraitSize) / 2;
-        if (portrait != null)
-            b.Draw(portrait, new Rectangle(portraitX, cy + 8, portraitSize, portraitSize),
-                new Rectangle(0, 0, 64, 64), Color.White);
-        else
-            b.Draw(Game1.staminaRect,
-                new Rectangle(portraitX, cy + 8, portraitSize, portraitSize), Color.Black * 0.1f);
+        EditorTheme.DrawFrame(b, rect, CardBg);
 
         var nameSize = Game1.smallFont.MeasureString(preset.NpcName);
         Utility.drawTextWithShadow(b, preset.NpcName, Game1.smallFont,
-            new Vector2(cx + (cardW - nameSize.X) / 2f, cy + portraitSize + 12), Color.SaddleBrown);
+            new Vector2(rect.X + (rect.Width - nameSize.X) / 2f, rect.Y + 8), Color.Black);
+
+        const int portraitSize = 64;
+        var portraitRect = new Rectangle(rect.X + (rect.Width - portraitSize) / 2, rect.Y + 34, portraitSize, portraitSize);
+        var portrait = _portraits.GetValueOrDefault(preset.NpcName);
+        if (portrait != null)
+            b.Draw(portrait, portraitRect, new Rectangle(0, 0, 64, 64), Color.White);
+        else
+            b.Draw(Game1.staminaRect, portraitRect, Color.Black * 0.08f);
+
+        // Description preview (two lines), same as the Local cards.
+        var preview = string.IsNullOrWhiteSpace(preset.Preview) ? "" : preset.Preview;
+        if (!string.IsNullOrWhiteSpace(preview))
+        {
+            var wrapped = Game1.parseText(preview, Game1.smallFont, rect.Width - 20);
+            var lines = wrapped.Split('\n');
+            if (lines.Length > 2)
+                wrapped = string.Join("\n", lines.Take(2)).TrimEnd() + "…";
+            b.DrawString(Game1.smallFont, wrapped, new Vector2(rect.X + 10, rect.Y + 106), Color.Black * 0.7f);
+        }
+
+        // Author centered across the bottom frame, yellow so it reads on the brown border.
+        var author = _i18n.Get("gallery.card.by", new { author = preset.Author }).ToString();
+        var aSize = Game1.tinyFont.MeasureString(author);
+        var aPos = new Vector2(rect.X + (rect.Width - aSize.X) / 2f, rect.Bottom - aSize.Y - 8);
+        Utility.drawTextWithShadow(b, author, Game1.tinyFont, aPos, Color.Yellow);
+    }
+
+    private static void DrawButton(SpriteBatch b, Rectangle rect, string label, Color background)
+        => EditorTheme.DrawButton(b, rect, label, background, Color.Black);
+
+    // ── Local presets (Manage) mode ─────────────────────────────────────────
+
+    private void ReloadLocal()
+    {
+        _localPresets.Clear();
+        if (_presetStore == null)
+            return;
+        foreach (var (id, entry) in _presetStore.LoadAll()
+                     .OrderBy(p => p.Entry.NpcName, StringComparer.OrdinalIgnoreCase)
+                     .ThenBy(p => p.Id, StringComparer.OrdinalIgnoreCase))
+            _localPresets.Add((id, entry.NpcName, entry));
+    }
+
+    private List<(string Id, string Npc, NpcOverrideEntry Entry)> GetFilteredLocal()
+    {
+        IEnumerable<(string Id, string Npc, NpcOverrideEntry Entry)> list = _localPresets;
+
+        var npc = NpcFilter;
+        if (npc != null)
+            list = list.Where(p => string.Equals(p.Npc, npc, StringComparison.OrdinalIgnoreCase));
+
+        var query = _search.Text?.Trim();
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var q = query.ToLowerInvariant();
+            list = list.Where(p =>
+                p.Npc.ToLowerInvariant().Contains(q)
+                || (p.Entry.CanonicalPersonality?.ToLowerInvariant().Contains(q) ?? false)
+                || (p.Entry.Lore?.ToLowerInvariant().Contains(q) ?? false)
+                || (p.Entry.SocialTags?.ToLowerInvariant().Contains(q) ?? false)
+                || (p.Entry.SubmissionCredit?.ToLowerInvariant().Contains(q) ?? false));
+        }
+        return list.ToList();
+    }
+
+    private void DrawLocalCards(SpriteBatch b)
+    {
+        var layout = GetGridLayout();
+        var list = GetFilteredLocal();
+
+        if (list.Count == 0)
+        {
+            var message = _i18n.Get(_localPresets.Count == 0 ? "gallery.preset.none" : "gallery.browse.empty").ToString();
+            var size = Game1.smallFont.MeasureString(message);
+            Utility.drawTextWithShadow(b, message, Game1.smallFont,
+                new Vector2(layout.GridArea.X + (layout.GridArea.Width - size.X) / 2f, layout.GridArea.Y + 40),
+                Color.SaddleBrown);
+            return;
+        }
+
+        var rows = (list.Count + layout.Columns - 1) / layout.Columns;
+        var contentHeight = rows * CardSize + Math.Max(0, rows - 1) * CardRowGap;
+        _maxScroll = Math.Max(0, contentHeight - layout.GridArea.Height);
+        _scrollY = Math.Clamp(_scrollY, 0, _maxScroll);
+
+        var previousScissor = b.GraphicsDevice.ScissorRectangle;
+        var previousRasterizer = b.GraphicsDevice.RasterizerState;
+        b.End();
+        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null,
+            new RasterizerState { ScissorTestEnable = true });
+        b.GraphicsDevice.ScissorRectangle = layout.GridArea;
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            var rect = GetCardRect(i, layout);
+            if (rect.Bottom < layout.GridArea.Top || rect.Top > layout.GridArea.Bottom)
+                continue;
+            DrawLocalCard(b, list[i], rect);
+        }
+
+        b.End();
+        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, previousRasterizer);
+        b.GraphicsDevice.ScissorRectangle = previousScissor;
+
+        if (_maxScroll > 0)
+            PersonalityEditorMenu.DrawScrollbar(b, layout.GridArea, _scrollY, _maxScroll);
+    }
+
+    private void DrawLocalCard(SpriteBatch b, (string Id, string Npc, NpcOverrideEntry Entry) preset, Rectangle rect)
+    {
+        EditorTheme.DrawFrame(b, rect, CardBg);
+
+        var nameSize = Game1.smallFont.MeasureString(preset.Npc);
+        Utility.drawTextWithShadow(b, preset.Npc, Game1.smallFont,
+            new Vector2(rect.X + (rect.Width - nameSize.X) / 2f, rect.Y + 8), Color.Black);
+
+        const int portraitSize = 64;
+        var portraitRect = new Rectangle(rect.X + (rect.Width - portraitSize) / 2, rect.Y + 34, portraitSize, portraitSize);
+        var portrait = _portraits.GetValueOrDefault(preset.Npc);
+        if (portrait != null)
+            b.Draw(portrait, portraitRect, new Rectangle(0, 0, 64, 64), Color.White);
+        else
+            b.Draw(Game1.staminaRect, portraitRect, Color.Black * 0.08f);
 
         var preview = !string.IsNullOrWhiteSpace(preset.Entry.SubmissionCredit)
             ? preset.Entry.SubmissionCredit
             : (!string.IsNullOrWhiteSpace(preset.Entry.CanonicalPersonality)
-                ? preset.Entry.CanonicalPersonality : "(no preview)");
-        var wrapped = Game1.parseText(preview, Game1.tinyFont, (int)((cardW - 12) / 0.75f));
-        b.DrawString(Game1.tinyFont, wrapped, new Vector2(cx + 6, cy + portraitSize + 28), Color.Black * 0.6f, 0f, Vector2.Zero, 0.75f, SpriteEffects.None, 0f);
-
-        var btnW = 64;
-        var btnH = 20;
-        var btnY = cy + CardH - btnH - 6;
-        var uploadRect = new Rectangle(cx + 8, btnY, btnW, btnH);
-        var deleteRect = new Rectangle(cx + cardW - btnW - 8, btnY, btnW, btnH);
-
-        if (_uploadBtnRects.Count <= index) _uploadBtnRects.Add(uploadRect); else _uploadBtnRects[index] = uploadRect;
-        if (_deleteBtnRects.Count <= index) _deleteBtnRects.Add(deleteRect); else _deleteBtnRects[index] = deleteRect;
-
-        DrawSmallButton(b, uploadRect, _i18n.Get("gallery.button.upload"), new Color(100, 140, 60));
-        DrawSmallButton(b, deleteRect, _i18n.Get("gallery.button.delete"), new Color(140, 80, 80));
-    }
-
-    private void DrawSmallButton(SpriteBatch b, Rectangle rect, string text, Color color)
-    {
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            rect.X, rect.Y, rect.Width, rect.Height, color);
-        var size = Game1.tinyFont.MeasureString(text);
-        b.DrawString(Game1.tinyFont, text,
-            new Vector2(rect.X + (rect.Width - size.X) / 2f, rect.Y + (rect.Height - size.Y) / 2f),
-            Color.White);
-    }
-
-    private void ReloadLocalPresets()
-    {
-        _localPresets.Clear();
-        if (_presetStore == null) return;
-        var all = _presetStore.LoadAll();
-        foreach (var kv in all.OrderBy(k => k.Key))
-            _localPresets.Add((kv.Key, kv.Value));
-    }
-
-    private void FilterLocalPresets()
-    {
-        _filteredLocal.Clear();
-
-        var filtered = _localPresets.AsEnumerable();
-
-        if (_localNpcFilterIndex > 0 && _localNpcFilterIndex < _npcFilterNames.Count)
+                ? preset.Entry.CanonicalPersonality
+                : "");
+        if (!string.IsNullOrWhiteSpace(preview))
         {
-            var npcName = _npcFilterNames[_localNpcFilterIndex];
-            filtered = filtered.Where(p => string.Equals(p.NpcName, npcName, System.StringComparison.OrdinalIgnoreCase));
+            var wrapped = Game1.parseText(preview, Game1.smallFont, rect.Width - 20);
+            var lines = wrapped.Split('\n');
+            if (lines.Length > 2)
+                wrapped = string.Join("\n", lines.Take(2)).TrimEnd() + "…";
+            b.DrawString(Game1.smallFont, wrapped, new Vector2(rect.X + 10, rect.Y + 108), Color.Black * 0.7f);
         }
-
-        if (!string.IsNullOrWhiteSpace(_localSearchInput))
-        {
-            var q = _localSearchInput.ToLower();
-            filtered = filtered.Where(p =>
-                p.NpcName.ToLower().Contains(q) ||
-                (p.Entry.CanonicalPersonality?.ToLower().Contains(q) == true) ||
-                (p.Entry.Lore?.ToLower().Contains(q) == true) ||
-                (p.Entry.SocialTags?.ToLower().Contains(q) == true) ||
-                (p.Entry.SubmissionCredit?.ToLower().Contains(q) == true));
-        }
-
-        _filteredLocal = filtered.ToList();
-
-        var (_, _, _, gridTop) = GetGridLayout();
-        var area = _getContentArea();
-        var gridH = area.Bottom - gridTop;
-        var cols = System.Math.Max(2, (area.Width + CardGap) / (MinCardW + CardGap));
-        var rows = (_filteredLocal.Count + cols - 1) / cols;
-        var totalH = rows * (CardH + CardGap);
-        _localMaxScroll = System.Math.Max(0, totalH - gridH);
-        _localScrollY = System.Math.Clamp(_localScrollY, 0, _localMaxScroll);
     }
 
-    private async Task UploadPresetAsync(string npcName, NpcOverrideEntry entry)
+    private async void UploadLocal(string npc, NpcOverrideEntry entry)
     {
         Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.upload.progress"), 3));
-        var success = await _service.UploadPresetAsync(npcName, entry, "Anonymous");
-        if (success)
-            Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.upload.success"), 4));
-        else
+        try
+        {
+            var author = Game1.player?.Name ?? "Anonymous";
+            var ok = await _service.UploadPresetAsync(npc, entry, author);
+            Game1.addHUDMessage(new HUDMessage(_i18n.Get(ok ? "gallery.upload.success" : "gallery.upload.failed"), ok ? 4 : 3));
+        }
+        catch (Exception ex)
+        {
+            _monitor.Log($"Local preset upload failed: {ex.Message}", LogLevel.Warn);
             Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.upload.failed"), 3));
+        }
     }
 
-    private void DrawCard(SpriteBatch b, PresetMetadata preset, int cx, int cy, int cardW)
+    private void SwitchMode(int mode)
     {
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            cx, cy, cardW, CardH, new Color(222, 195, 153));
-
-        var portrait = _portraits.GetValueOrDefault(preset.NpcName);
-        var portraitSize = 40;
-        var portraitX = cx + (cardW - portraitSize) / 2;
-        if (portrait != null)
-            b.Draw(portrait, new Rectangle(portraitX, cy + 8, portraitSize, portraitSize),
-                new Rectangle(0, 0, 64, 64), Color.White);
-        else
-            b.Draw(Game1.staminaRect,
-                new Rectangle(portraitX, cy + 8, portraitSize, portraitSize), Color.Black * 0.1f);
-
-        var nameSize = Game1.smallFont.MeasureString(preset.NpcName);
-        Utility.drawTextWithShadow(b, preset.NpcName, Game1.smallFont,
-            new Vector2(cx + (cardW - nameSize.X) / 2f, cy + portraitSize + 12), Color.SaddleBrown);
-
-        var author = $"by {preset.Author}";
-        var aSize = Game1.tinyFont.MeasureString(author);
-        b.DrawString(Game1.tinyFont, author,
-            new Vector2(cx + (cardW - aSize.X * 0.75f) / 2f, cy + portraitSize + 28),
-            Color.Gray, 0f, Vector2.Zero, 0.75f, SpriteEffects.None, 0f);
-
-        var preview = string.IsNullOrEmpty(preset.Preview) ? "(no preview)" : preset.Preview;
-        var wrapped = Game1.parseText(preview, Game1.tinyFont, (int)((cardW - 12) / 0.75f));
-        b.DrawString(Game1.tinyFont, wrapped, new Vector2(cx + 6, cy + portraitSize + 42), Color.Black * 0.6f, 0f, Vector2.Zero, 0.75f, SpriteEffects.None, 0f);
+        if (_mode == mode)
+            return;
+        Unsubscribe();
+        _mode = mode;
+        _search.Text = "";
+        _scrollY = 0;
+        if (mode == 1)
+            ReloadLocal();
+        Game1.playSound("smallSelect");
     }
 
     public void receiveLeftClick(int x, int y)
     {
-        if (_previewModal != null)
+        if (_preview != null)
         {
-            _previewModal.receiveLeftClick(x, y);
+            _preview.receiveLeftClick(x, y);
             return;
         }
 
-        // Browse / Upload switch
-        if (_browseSwitchBtn.Contains(x, y))
+        // Server URL editor takes priority while open.
+        if (_editingServer)
         {
-            _galleryMode = 0;
-            Game1.playSound("smallSelect");
-            return;
-        }
-        if (_uploadSwitchBtn.Contains(x, y))
-        {
-            _galleryMode = 1;
-            ReloadLocalPresets();
-            Game1.playSound("smallSelect");
+            if (_urlBox.Contains(x, y))
+            {
+                _urlSub.Selected = true;
+                Game1.keyboardDispatcher.Subscriber = _urlSub;
+                return;
+            }
+            if (_urlSaveButton.Contains(x, y)) { SaveServerUrl(); return; }
+            if (_urlCancelButton.Contains(x, y)) { CloseServerEditor(); return; }
+            _urlSub.Selected = false;
+            if (Game1.keyboardDispatcher.Subscriber == _urlSub)
+                Game1.keyboardDispatcher.Subscriber = null;
             return;
         }
 
-        // NPC filter dropdown (shared for browse, upload uses same dropdown position)
+        // NPC filter dropdown takes priority while open.
         if (_npcFilterOpen)
         {
-            _npcFilterOpen = false;
-            var ddItemH = 24;
-            var ddH = System.Math.Min(_npcFilterNames.Count * ddItemH, 200);
-            var ddRect = new Rectangle(_npcFilterBtn.X, _npcFilterBtn.Bottom + 2, _npcFilterBtn.Width, ddH);
-            if (ddRect.Contains(x, y))
+            var dd = GetDropdownRect();
+            var inner = new Rectangle(dd.X + 8, dd.Y + 6, dd.Width - 16, dd.Height - 12);
+            if (inner.Contains(x, y))
             {
-                var idx = (y - ddRect.Y) / ddItemH;
-                if (idx >= 0 && idx < _npcFilterNames.Count)
+                var idx = (y - inner.Y + _npcDropScroll) / DropItemH;
+                if (idx >= 0 && idx < _npcFilterNames.Count && idx != _npcFilterIndex)
                 {
-                    if (_galleryMode == 0)
-                    {
-                        _npcFilterIndex = idx;
-                        _ = SearchAsync(_searchInput.Length > 0 ? _searchInput : null);
-                    }
-                    else
-                    {
-                        _localNpcFilterIndex = idx;
-                    }
-                    Game1.playSound("smallSelect");
+                    _npcFilterIndex = idx;
+                    ApplyNpcFilter();
                 }
+                _npcFilterOpen = false;
+                Game1.playSound("smallSelect");
+                return;
             }
+            _npcFilterOpen = false; // click outside closes it
             return;
         }
 
-        if (_npcFilterBtn.Contains(x, y))
+        if (_serverButton.Contains(x, y)) { OpenServerEditor(); Game1.playSound("smallSelect"); return; }
+        if (_discoverButton.Contains(x, y)) { SwitchMode(0); return; }
+        if (_localButton.Contains(x, y)) { SwitchMode(1); return; }
+
+        if (_npcFilterButton.Contains(x, y))
         {
             _npcFilterOpen = true;
-            Game1.playSound("smallSelect");
-            return;
-        }
-
-        if (_refreshBtn.Contains(x, y))
-        {
-            if (_galleryMode == 0)
-                _ = RefreshAsync();
-            else
-                ReloadLocalPresets();
-            Game1.playSound("smallSelect");
-            return;
-        }
-
-        if (_searchBtn.Contains(x, y))
-        {
-            if (_galleryMode == 0)
-                _ = SearchAsync(_searchInput);
+            _npcDropScroll = 0;
+            Unsubscribe();
             Game1.playSound("smallSelect");
             return;
         }
 
         if (_searchBox.Contains(x, y))
         {
-            _searchFocused = true;
-            Game1.keyboardDispatcher.Subscriber = null;
+            _search.Selected = true;
+            Game1.keyboardDispatcher.Subscriber = _search;
+            return;
+        }
+        if (_searchButton.Contains(x, y))
+        {
+            Unsubscribe();
+            if (_mode == 0) _ = SearchAsync();
+            Game1.playSound("smallSelect");
             return;
         }
 
-        _searchFocused = false;
+        Unsubscribe();
 
-        if (_galleryMode == 1)
+        if (_mode == 1)
         {
-            // Click on Upload / Delete buttons in local preset grid
-            for (int i = 0; i < _uploadBtnRects.Count && i < _filteredLocal.Count; i++)
+            var localLayout = GetGridLayout();
+            var list = GetFilteredLocal();
+            for (var i = 0; i < list.Count; i++)
             {
-                if (_uploadBtnRects[i].Contains(x, y))
-                {
-                    var preset = _filteredLocal[i];
-                    _ = UploadPresetAsync(preset.NpcName, preset.Entry);
-                    Game1.playSound("smallSelect");
-                    return;
-                }
-            }
-            for (int i = 0; i < _deleteBtnRects.Count && i < _filteredLocal.Count; i++)
-            {
-                if (_deleteBtnRects[i].Contains(x, y))
-                {
-                    var preset = _filteredLocal[i];
-                    if (_presetStore != null)
-                    {
-                        _presetStore.Delete(preset.NpcName);
-                        ReloadLocalPresets();
-                    }
-                    Game1.playSound("trashcan");
-                    return;
-                }
-            }
-            return; // No card clicks in upload mode
-        }
-
-        // Browse mode: grid clicks
-        var (cols, cardW, startX, gridTop) = GetGridLayout();
-        var area = _getContentArea();
-        var gridArea = new Rectangle(area.X, gridTop, area.Width, area.Bottom - gridTop);
-
-        for (int i = 0; i < _presets.Count; i++)
-        {
-            var col = i % cols;
-            var row = i / cols;
-            var cx = startX + col * (cardW + CardGap);
-            var cy = gridArea.Y + row * (CardH + CardGap) - _scrollY;
-
-            if (cy + CardH < gridArea.Y || cy > gridArea.Bottom)
-                continue;
-
-            if (new Rectangle(cx, cy, cardW, CardH).Contains(x, y))
-            {
-                _ = OpenPreviewAsync(_presets[i]);
+                var rect = GetCardRect(i, localLayout);
+                if (!localLayout.GridArea.Contains(x, y) || !rect.Contains(x, y))
+                    continue;
+                OpenLocalPreview(list[i]);
                 Game1.playSound("smallSelect");
                 return;
             }
+            return;
         }
 
-        if (_hasMore && !_loading)
+        var layout = GetGridLayout();
+        for (var i = 0; i < _presets.Count; i++)
         {
-            var lastRow = (_presets.Count - 1) / cols;
-            var loadMoreY = gridArea.Y + (lastRow + 1) * (CardH + CardGap) - _scrollY;
-            if (y > loadMoreY - 200)
-            {
-                _ = FetchPageAsync(_searchQuery);
-            }
+            var rect = GetCardRect(i, layout);
+            if (!layout.GridArea.Contains(x, y) || !rect.Contains(x, y))
+                continue;
+            _ = OpenPreviewAsync(_presets[i]);
+            Game1.playSound("smallSelect");
+            return;
         }
     }
 
     private async Task OpenPreviewAsync(PresetMetadata preset)
     {
         var data = await _service.DownloadPresetAsync(preset.Id);
-        _previewModal = new GalleryPreviewModal(
-            preset, data, _store, _portraits, _i18n,
-            () => _previewModal = null,
-            _getContentArea);
+        if (data == null)
+        {
+            Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.upload.failed"), 3));
+            return;
+        }
+
+        var npc = preset.NpcName;
+        var entry = data.Data;
+        var actions = new List<GalleryPreviewModal.PreviewAction>
+        {
+            // Import: copy into the LOCAL gallery only (does not touch the live NPC).
+            new(_i18n.Get("gallery.button.import").ToString(), new Color(120, 190, 100), () =>
+            {
+                _presetStore?.Save(npc, entry);
+                _ = _service.ReportDownloadAsync(preset.Id);
+                Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.preset.saved", new { npcName = npc }), 3));
+                Game1.playSound("coin");
+                _preview = null;
+            }),
+            // Import & Apply: save locally AND apply live (NPC personality or farmer sheet).
+            new(_i18n.Get("gallery.button.import_apply").ToString(), new Color(90, 160, 80), () =>
+            {
+                _presetStore?.Save(npc, entry);
+                _ = _service.ReportDownloadAsync(preset.Id);
+                ApplyEntry(npc, entry);
+                Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.import.success", new { npcName = npc }), 3));
+                Game1.playSound("coin");
+                _preview = null;
+            }),
+        };
+        if (preset.CanDelete)
+            actions.Add(new(_i18n.Get("gallery.button.delete").ToString(), new Color(225, 125, 85),
+                () => _ = DeleteServerPreset(preset.Id)));
+        actions.Add(new(_i18n.Get("button.close").ToString(), new Color(255, 248, 234), () => _preview = null));
+
+        _preview = new GalleryPreviewModal(
+            npc,
+            _i18n.Get("gallery.card.by", new { author = preset.Author }).ToString(),
+            entry, _portraits, _i18n, () => _preview = null, actions);
+    }
+
+    private async Task DeleteServerPreset(string id)
+    {
+        var deleted = await _service.DeletePresetAsync(id);
+        Game1.addHUDMessage(new HUDMessage(_i18n.Get(deleted ? "gallery.button.delete" : "gallery.upload.failed"), deleted ? 4 : 3));
+        _preview = null;
+        if (deleted)
+        {
+            _presets.Clear();
+            _currentPage = 0;
+            _hasMore = true;
+            await FetchPageAsync();
+        }
+    }
+
+    // Apply a preset live: farmer presets populate the character sheet; NPC presets
+    // become that NPC's active personality override.
+    private void ApplyEntry(string npc, NpcOverrideEntry entry)
+    {
+        if (entry.IsFarmer)
+        {
+            _applyFarmerSheet?.Invoke(entry);
+            return;
+        }
+        _store.Set(npc, entry);
+        _store.Save(npc);
+        _onImported();
+    }
+
+    private void OpenLocalPreview((string Id, string Npc, NpcOverrideEntry Entry) preset)
+    {
+        var npc = preset.Npc;
+        var entry = preset.Entry;
+        var subtitle = !string.IsNullOrWhiteSpace(entry.SubmissionCredit)
+            ? _i18n.Get("gallery.card.by", new { author = entry.SubmissionCredit }).ToString()
+            : _i18n.Get("tab.local").ToString();
+
+        var actions = new List<GalleryPreviewModal.PreviewAction>
+        {
+            new(_i18n.Get("gallery.button.apply").ToString(), new Color(90, 160, 80), () =>
+            {
+                ApplyEntry(npc, entry);
+                Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.import.success", new { npcName = npc }), 3));
+                Game1.playSound("coin");
+                _preview = null;
+            }),
+            new(_i18n.Get("gallery.button.upload").ToString(), new Color(120, 190, 100), () =>
+            {
+                UploadLocal(npc, entry);
+                _preview = null;
+            }, Confirm: true, ConfirmLabel: _i18n.Get("button.confirm").ToString()),
+            new(_i18n.Get("gallery.button.delete").ToString(), new Color(225, 125, 85), () =>
+            {
+                _presetStore?.Delete(preset.Id);
+                ReloadLocal();
+                Game1.playSound("trashcan");
+                _preview = null;
+            }),
+            new(_i18n.Get("button.close").ToString(), new Color(255, 248, 234), () => _preview = null),
+        };
+
+        _preview = new GalleryPreviewModal(npc, subtitle, entry, _portraits, _i18n, () => _preview = null, actions);
     }
 
     public void receiveScrollWheelAction(int direction)
     {
-        if (_previewModal != null) return;
-
-        if (_galleryMode == 1)
+        if (_editingServer)
+            return;
+        if (_preview != null)
         {
-            _localScrollY -= direction;
-            _localScrollY = System.Math.Clamp(_localScrollY, 0, Math.Max(0, _localMaxScroll));
+            _preview.receiveScrollWheelAction(direction);
             return;
         }
-
-        _scrollY -= direction;
-        _scrollY = System.Math.Clamp(_scrollY, 0, Math.Max(0, _maxScroll));
-
-        var area = _getContentArea();
-        var (_, _, _, gridTop) = GetGridLayout();
-        var gridArea = new Rectangle(area.X, gridTop, area.Width, area.Bottom - gridTop);
-
-        if (_hasMore && !_loading)
+        if (_npcFilterOpen)
         {
-            var cols = System.Math.Max(2, (gridArea.Width + CardGap) / (MinCardW + CardGap));
-            var lastRow = (_presets.Count - 1) / cols;
-            var lastY = gridArea.Y + lastRow * (CardH + CardGap) - _scrollY;
-            if (lastY < gridArea.Bottom + 200)
-            {
-                _ = FetchPageAsync(_searchQuery);
-            }
+            _npcDropScroll = Math.Max(0, _npcDropScroll - direction);
+            return;
+        }
+        _scrollY = Math.Clamp(_scrollY - direction, 0, Math.Max(0, _maxScroll));
+        if (_mode != 0)
+            return;
+        var layout = GetGridLayout();
+        if (_hasMore && !_loading && _presets.Count > 0)
+        {
+            var lastRect = GetCardRect(_presets.Count - 1, layout);
+            if (lastRect.Top < layout.GridArea.Bottom + 200)
+                _ = FetchPageAsync();
         }
     }
 
-    public void receiveKeyPress(Keys key)
+    public bool receiveKeyPress(Keys key)
     {
-        if (_previewModal != null)
+        if (_editingServer)
         {
-            _previewModal.receiveKeyPress(key);
-            return;
+            if (key == Keys.Enter) SaveServerUrl();
+            else if (key == Keys.Escape) CloseServerEditor();
+            return true;
         }
+        if (_preview != null)
+        {
+            _preview.receiveKeyPress(key);
+            return true;
+        }
+        if (!_search.Selected)
+            return false;
 
-        if (_searchFocused)
+        if (key == Keys.Enter)
         {
-            var target = _galleryMode == 1 ? ref _localSearchInput : ref _searchInput;
-            if (key == Keys.Escape)
-            {
-                _searchFocused = false;
-            }
-            else if (key == Keys.Enter)
-            {
-                if (_galleryMode == 0)
-                    _ = SearchAsync(_searchInput);
-                _searchFocused = false;
-            }
-            else if (key == Keys.Back && target.Length > 0)
-            {
-                target = target[..^1];
-            }
-            else if (key >= Keys.A && key <= Keys.Z)
-            {
-                target += key.ToString().ToLower();
-            }
-            else if (key == Keys.Space)
-            {
-                target += " ";
-            }
+            Unsubscribe();
+            if (_mode == 0) _ = SearchAsync();
         }
+        else if (key == Keys.Escape)
+        {
+            Unsubscribe();
+        }
+        return true;
+    }
+
+    public void Unsubscribe()
+    {
+        _search.Selected = false;
+        if (Game1.keyboardDispatcher.Subscriber == _search)
+            Game1.keyboardDispatcher.Subscriber = null;
     }
 
     private void UpdateMaxScroll()
     {
-        var (_, _, _, gridTop) = GetGridLayout();
-        var area = _getContentArea();
-        var gridH = area.Bottom - gridTop;
-        var cols = System.Math.Max(2, (area.Width + CardGap) / (MinCardW + CardGap));
-        var rows = (_presets.Count + cols - 1) / cols;
-        var totalH = rows * (CardH + CardGap);
-        _maxScroll = System.Math.Max(0, totalH - gridH);
-        _scrollY = System.Math.Clamp(_scrollY, 0, _maxScroll);
+        var layout = GetGridLayout();
+        var rows = (_presets.Count + layout.Columns - 1) / layout.Columns;
+        var contentHeight = rows * CardSize + Math.Max(0, rows - 1) * CardRowGap;
+        _maxScroll = Math.Max(0, contentHeight - layout.GridArea.Height);
+        _scrollY = Math.Clamp(_scrollY, 0, _maxScroll);
+    }
+
+    private sealed class SearchSubscriber : IKeyboardSubscriber
+    {
+        public bool Selected { get; set; }
+        public string Text { get; set; } = "";
+        public int MaxLength { get; set; } = 80;
+
+        public void RecieveTextInput(char inputChar)
+        {
+            if (Selected && !char.IsControl(inputChar) && Text.Length < MaxLength)
+                Text += inputChar;
+        }
+
+        public void RecieveTextInput(string text)
+        {
+            if (!Selected || string.IsNullOrEmpty(text))
+                return;
+            var clean = new string(text.Where(c => !char.IsControl(c)).ToArray());
+            Text += clean[..Math.Min(clean.Length, Math.Max(0, MaxLength - Text.Length))];
+        }
+
+        public void RecieveCommandInput(char command)
+        {
+            if (Selected && command == '\b' && Text.Length > 0)
+                Text = Text[..^1];
+        }
+
+        public void RecieveSpecialInput(Keys key) { }
     }
 }
 
 public sealed class GalleryPreviewModal
 {
-    private readonly PresetMetadata _meta;
-    private readonly PresetDownload? _data;
-    private readonly PersonalityStore _store;
+    /// <summary>
+    /// A footer action button: label, tint, and what it does. Set <paramref name="Confirm"/>
+    /// to require a second click (the button shows <paramref name="ConfirmLabel"/> first) —
+    /// used to guard the public Upload action.
+    /// </summary>
+    public readonly record struct PreviewAction(
+        string Label, Color Color, Action Invoke, bool Confirm = false, string ConfirmLabel = "");
+
+    private readonly string _npcName;
+    private readonly string _subtitle;
+    private readonly NpcOverrideEntry _entry;
     private readonly Dictionary<string, Texture2D?> _portraits;
     private readonly ITranslationHelper _i18n;
-    private readonly System.Action _onClose;
-    private readonly System.Func<Rectangle> _getContentArea;
+    private readonly Action _onClose;
+    private readonly IReadOnlyList<PreviewAction> _actions;
+    private readonly List<Rectangle> _actionRects = new();
 
-    private Rectangle _importBtn;
-    private Rectangle _saveLocalBtn;
-    private Rectangle _closeBtn;
+    private Rectangle _modal;
+    private Rectangle _textArea;
+    private int _scrollY;
+    private int _maxScroll;
+    private int _armed = -1; // index of a Confirm button awaiting its second click
 
     public GalleryPreviewModal(
-        PresetMetadata meta,
-        PresetDownload? data,
-        PersonalityStore store,
+        string npcName,
+        string subtitle,
+        NpcOverrideEntry entry,
         Dictionary<string, Texture2D?> portraits,
         ITranslationHelper i18n,
-        System.Action onClose,
-        System.Func<Rectangle> getContentArea)
+        Action onClose,
+        IReadOnlyList<PreviewAction> actions)
     {
-        _meta = meta;
-        _data = data;
-        _store = store;
+        _npcName = npcName;
+        _subtitle = subtitle;
+        _entry = entry;
         _portraits = portraits;
         _i18n = i18n;
         _onClose = onClose;
-        _getContentArea = getContentArea;
+        _actions = actions;
     }
 
     public void Draw(SpriteBatch b)
     {
-        var area = _getContentArea();
-        var vw = Game1.uiViewport.Width;
-        var vh = Game1.uiViewport.Height;
+        var viewport = Game1.uiViewport;
+        _modal = new Rectangle(
+            (viewport.Width - Math.Min(744, viewport.Width - 60)) / 2,
+            (viewport.Height - Math.Min(604, viewport.Height - 60)) / 2,
+            Math.Min(744, viewport.Width - 60),
+            Math.Min(604, viewport.Height - 60));
 
-        var modalW = System.Math.Min(600, vw - 80);
-        var modalH = System.Math.Min(500, vh - 80);
-        var mx = (vw - modalW) / 2;
-        var my = (vh - modalH) / 2;
+        b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, viewport.Width, viewport.Height), Color.Black * 0.62f);
+        EditorTheme.DrawFrame(b, _modal, Color.White);
 
-        b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, vw, vh), Color.Black * 0.6f);
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            mx, my, modalW, modalH, Color.White);
-
-        var portrait = _portraits.GetValueOrDefault(_meta.NpcName);
-        var portraitSize = 64;
+        const int portraitSize = 120;
+        var portraitRect = new Rectangle(_modal.X + 42, _modal.Y + 38, portraitSize, portraitSize);
+        var portrait = _portraits.GetValueOrDefault(_npcName);
         if (portrait != null)
-            b.Draw(portrait, new Rectangle(mx + 16, my + 16, portraitSize, portraitSize),
-                new Rectangle(0, 0, 64, 64), Color.White);
+            b.Draw(portrait, portraitRect, new Rectangle(0, 0, 64, 64), Color.White);
+        PersonalityEditorMenu.DrawBorder(b, portraitRect, new Color(125, 60, 40), 4);
 
-        Utility.drawTextWithShadow(b, _meta.NpcName, Game1.dialogueFont,
-            new Vector2(mx + portraitSize + 28, my + 20), Color.SaddleBrown);
+        Utility.drawTextWithShadow(b, _npcName, Game1.dialogueFont,
+            new Vector2(portraitRect.Right + 20, _modal.Y + 42), Color.Black);
+        if (!string.IsNullOrEmpty(_subtitle))
+            b.DrawString(Game1.smallFont, _subtitle, new Vector2(portraitRect.Right + 20, _modal.Y + 76), Color.Gray);
 
-        var metaLine = $"by {_meta.Author} — {_meta.CreatedAt}";
-        Utility.drawTextWithShadow(b, metaLine, Game1.smallFont,
-            new Vector2(mx + portraitSize + 28, my + 50), Color.Gray);
-
-        var textX = mx + 16;
-        var textW = modalW - 32;
-        var textY = my + 90;
-
-        if (_data != null)
-        {
-            var d = _data.Data;
-            if (!string.IsNullOrWhiteSpace(d.CanonicalPersonality))
-                textY = DrawField(b, _i18n.Get("field.personality"), d.CanonicalPersonality, textX, textY, textW);
-            if (!string.IsNullOrWhiteSpace(d.Lore))
-                textY = DrawField(b, _i18n.Get("field.lore"), d.Lore, textX, textY, textW);
-            if (!string.IsNullOrWhiteSpace(d.SocialTags))
-                textY = DrawField(b, _i18n.Get("field.social_tags"), d.SocialTags, textX, textY, textW);
-            if (!string.IsNullOrWhiteSpace(d.SubmissionCredit))
-                textY = DrawField(b, _i18n.Get("field.submission_credit"), d.SubmissionCredit, textX, textY, textW);
-        }
-
-        var btnY = my + modalH - 44;
-        var btnW = 120;
-        var btnH = 32;
-
-        _importBtn = new Rectangle(mx + 16, btnY, btnW, btnH);
-        DrawButton(b, _importBtn, _i18n.Get("gallery.button.import"), new Color(100, 140, 60));
-
-        _saveLocalBtn = new Rectangle(mx + 16 + btnW + 8, btnY, btnW + 20, btnH);
-        DrawButton(b, _saveLocalBtn, _i18n.Get("gallery.button.save_local"), new Color(100, 100, 140));
-
-        _closeBtn = new Rectangle(mx + modalW - btnW - 16, btnY, btnW, btnH);
-        DrawButton(b, _closeBtn, _i18n.Get("button.close"), new Color(140, 80, 80));
+        _textArea = new Rectangle(_modal.X + 42, _modal.Y + 178, _modal.Width - 84, _modal.Height - 252);
+        DrawFields(b);
+        DrawFooter(b);
     }
 
-    private int DrawField(SpriteBatch b, string label, string text, int x, int y, int maxW)
+    private void DrawFields(SpriteBatch b)
     {
-        var labelSize = Game1.smallFont.MeasureString(label);
-        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(x, y), new Color(170, 120, 60));
-        y += (int)labelSize.Y + 2;
+        var previousScissor = b.GraphicsDevice.ScissorRectangle;
+        var previousRasterizer = b.GraphicsDevice.RasterizerState;
+        b.End();
+        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null,
+            new RasterizerState { ScissorTestEnable = true });
+        b.GraphicsDevice.ScissorRectangle = _textArea;
 
-        var wrapped = Game1.parseText(text, Game1.smallFont, maxW);
-        b.DrawString(Game1.smallFont, wrapped, new Vector2(x + 4, y), Color.Black * 0.85f);
-        var lines = wrapped.Split('\n');
-        y += lines.Length * (int)Game1.smallFont.MeasureString("A").Y + 8;
+        var y = _textArea.Y - _scrollY;
+        if (_entry.IsFarmer)
+        {
+            // Farmer preset: use the backstory question labels instead of NPC ones.
+            y = DrawField(b, _i18n.Get("farmer.field.1"), _entry.CanonicalPersonality, y);
+            y = DrawField(b, _i18n.Get("farmer.field.2"), _entry.Lore, y);
+            y = DrawField(b, _i18n.Get("farmer.field.3"), _entry.SocialTags, y);
+            y = DrawField(b, _i18n.Get("farmer.field.4"), _entry.Appearance, y);
+        }
+        else
+        {
+            y = DrawField(b, _i18n.Get("field.appearance"), _entry.Appearance, y);
+            y = DrawField(b, _i18n.Get("field.personality"), _entry.CanonicalPersonality, y);
+            y = DrawField(b, _i18n.Get("field.lore"), _entry.Lore, y);
+            y = DrawField(b, _i18n.Get("field.social_tags"), _entry.SocialTags, y);
+            y = DrawCharacterData(b, _entry.CharacterData, y);
+        }
+        y = DrawField(b, _i18n.Get("field.submission_credit"), _entry.SubmissionCredit, y);
+
+        b.End();
+        b.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, previousRasterizer);
+        b.GraphicsDevice.ScissorRectangle = previousScissor;
+
+        var contentHeight = y + _scrollY - _textArea.Y;
+        _maxScroll = Math.Max(0, contentHeight - _textArea.Height);
+        _scrollY = Math.Clamp(_scrollY, 0, _maxScroll);
+        if (_maxScroll > 0)
+            PersonalityEditorMenu.DrawScrollbar(b, _textArea, _scrollY, _maxScroll);
+    }
+
+    private int DrawField(SpriteBatch b, string label, string text, int y)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return y;
+        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(_textArea.X, y), Color.Black);
+        y += 32;
+        var wrapped = Game1.parseText(text, Game1.smallFont, _textArea.Width - 12);
+        b.DrawString(Game1.smallFont, wrapped, new Vector2(_textArea.X + 4, y), new Color(80, 75, 80));
+        y += wrapped.Split('\n').Length * (int)Game1.smallFont.MeasureString("A").Y + 18;
         return y;
     }
 
-    private void DrawButton(SpriteBatch b, Rectangle rect, string text, Color color)
+    // Character Data rendered as readable "Label: value" rows (never raw JSON).
+    private int DrawCharacterData(SpriteBatch b, CharacterDataOverride? cd, int y)
     {
-        IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
-            rect.X, rect.Y, rect.Width, rect.Height, color);
-        var size = Game1.smallFont.MeasureString(text);
-        Utility.drawTextWithShadow(b, text, Game1.smallFont,
-            new Vector2(rect.X + (rect.Width - size.X) / 2f, rect.Y + (rect.Height - size.Y) / 2f),
-            Color.White);
+        if (cd == null || !cd.HasAnyField)
+            return y;
+
+        Utility.drawTextWithShadow(b, _i18n.Get("field.character_data").ToString(), Game1.smallFont,
+            new Vector2(_textArea.X, y), Color.Black);
+        y += 32;
+
+        y = DrawRow(b, "field.display_name", cd.DisplayName, y);
+        y = DrawRow(b, "field.gender", EnumLabel("field.gender", cd.Gender), y);
+        y = DrawRow(b, "field.age", EnumLabel("field.age", cd.Age), y);
+        y = DrawRow(b, "field.manner", EnumLabel("field.manner", cd.Manner), y);
+        y = DrawRow(b, "field.social_anxiety", EnumLabel("field.social_anxiety", cd.SocialAnxiety), y);
+        y = DrawRow(b, "field.optimism", EnumLabel("field.optimism", cd.Optimism), y);
+        y = DrawRow(b, "field.can_socialize", BoolLabel(cd.CanSocialize), y);
+        y = DrawRow(b, "field.can_be_romanced", BoolLabel(cd.CanBeRomanced), y);
+        y = DrawRow(b, "field.birthday", Birthday(cd), y);
+        return y + 12;
+    }
+
+    private int DrawRow(SpriteBatch b, string labelKey, string? value, int y)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return y;
+        var text = $"{_i18n.Get(labelKey)}: {value}";
+        b.DrawString(Game1.smallFont, text, new Vector2(_textArea.X + 4, y), new Color(80, 75, 80));
+        return y + (int)Game1.smallFont.MeasureString("A").Y + 6;
+    }
+
+    private string? EnumLabel(string prefix, int? value)
+        => value == null ? null : _i18n.Get($"{prefix}.{value.Value}").ToString();
+
+    private string? BoolLabel(bool? value)
+        => value == null ? null : _i18n.Get(value.Value ? "ui.yes" : "ui.no").ToString();
+
+    private static string? Birthday(CharacterDataOverride cd)
+    {
+        if (string.IsNullOrWhiteSpace(cd.BirthSeason) && cd.BirthDay == null)
+            return null;
+        var season = string.IsNullOrWhiteSpace(cd.BirthSeason)
+            ? ""
+            : char.ToUpperInvariant(cd.BirthSeason[0]) + cd.BirthSeason[1..];
+        return $"{season} {cd.BirthDay?.ToString() ?? ""}".Trim();
+    }
+
+    private void DrawFooter(SpriteBatch b)
+    {
+        _actionRects.Clear();
+        var count = _actions.Count;
+        if (count == 0)
+            return;
+        const int pad = 16;
+        const int gap = 10;
+        var y = _modal.Bottom - 76;
+        var btnW = (_modal.Width - pad * 2 - gap * (count - 1)) / count;
+        for (var i = 0; i < count; i++)
+        {
+            var rect = new Rectangle(_modal.X + pad + i * (btnW + gap), y, btnW, 58);
+            _actionRects.Add(rect);
+            var armed = i == _armed;
+            var label = armed ? _actions[i].ConfirmLabel : _actions[i].Label;
+            var color = armed ? new Color(225, 125, 85) : _actions[i].Color;
+            EditorTheme.DrawButton(b, rect, label, color, Color.Black);
+        }
     }
 
     public void receiveLeftClick(int x, int y)
     {
-        if (_importBtn.Contains(x, y))
+        for (var i = 0; i < _actionRects.Count && i < _actions.Count; i++)
         {
-            if (_data != null)
+            if (!_actionRects[i].Contains(x, y))
+                continue;
+
+            var action = _actions[i];
+            // First click on a Confirm button just arms it; second click runs it.
+            if (action.Confirm && _armed != i)
             {
-                _store.Set(_meta.NpcName, _data.Data);
-                _store.Save(_meta.NpcName);
-                Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.import.success"), 3));
+                _armed = i;
+                Game1.playSound("smallSelect");
+                return;
             }
-            _onClose();
+            _armed = -1;
+            action.Invoke();
             return;
         }
+        _armed = -1; // clicking anywhere else cancels a pending confirmation
+    }
 
-        if (_closeBtn.Contains(x, y))
-        {
-            _onClose();
-            return;
-        }
-
-        _onClose();
+    public void receiveScrollWheelAction(int direction)
+    {
+        _scrollY = Math.Clamp(_scrollY - direction, 0, Math.Max(0, _maxScroll));
     }
 
     public void receiveKeyPress(Keys key)
     {
-        if (key == Keys.Escape) _onClose();
+        if (key == Keys.Escape)
+            _onClose();
     }
 }

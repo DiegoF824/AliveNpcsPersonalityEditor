@@ -28,17 +28,21 @@ public sealed class PresetStore
         _monitor = monitor;
     }
 
-    public Dictionary<string, NpcOverrideEntry> LoadAll()
+    /// <summary>
+    /// Load every saved preset as (fileId, entry). Each preset is its own file, so an
+    /// NPC can have many. Legacy files named "{npc}.json" still load (id = npc name).
+    /// </summary>
+    public List<(string Id, NpcOverrideEntry Entry)> LoadAll()
     {
-        var dict = new Dictionary<string, NpcOverrideEntry>(StringComparer.OrdinalIgnoreCase);
+        var list = new List<(string Id, NpcOverrideEntry Entry)>();
 
         if (!Directory.Exists(_presetsDir))
-            return dict;
+            return list;
 
         foreach (var file in Directory.EnumerateFiles(_presetsDir, "*.json"))
         {
-            var npcName = Path.GetFileNameWithoutExtension(file);
-            if (string.IsNullOrWhiteSpace(npcName))
+            var id = Path.GetFileNameWithoutExtension(file);
+            if (string.IsNullOrWhiteSpace(id))
                 continue;
 
             try
@@ -47,8 +51,9 @@ public sealed class PresetStore
                 var entry = JsonSerializer.Deserialize<NpcOverrideEntry>(json, JsonOptions);
                 if (entry != null && entry.HasAnyField)
                 {
-                    entry.NpcName = npcName;
-                    dict[npcName] = entry;
+                    if (string.IsNullOrWhiteSpace(entry.NpcName))
+                        entry.NpcName = id; // legacy files were named by NPC
+                    list.Add((id, entry));
                 }
             }
             catch (Exception ex)
@@ -57,44 +62,34 @@ public sealed class PresetStore
             }
         }
 
-        return dict;
+        return list;
     }
 
-    public NpcOverrideEntry? Get(string npcName)
-    {
-        var filePath = Path.Combine(_presetsDir, $"{npcName}.json");
-        if (!File.Exists(filePath)) return null;
-
-        try
-        {
-            var json = File.ReadAllText(filePath);
-            var entry = JsonSerializer.Deserialize<NpcOverrideEntry>(json, JsonOptions);
-            if (entry != null) entry.NpcName = npcName;
-            return entry;
-        }
-        catch { return null; }
-    }
-
-    public void Save(string npcName, NpcOverrideEntry data)
+    /// <summary>Save a NEW preset (unique file id) and return that id. Never overwrites.</summary>
+    public string Save(NpcOverrideEntry data)
     {
         Directory.CreateDirectory(_presetsDir);
-        data.NpcName = npcName;
-        var filePath = Path.Combine(_presetsDir, $"{npcName}.json");
+        var id = Guid.NewGuid().ToString("N");
+        var filePath = Path.Combine(_presetsDir, $"{id}.json");
         var json = JsonSerializer.Serialize(data, JsonOptions);
         var tempPath = filePath + ".tmp";
         File.WriteAllText(tempPath, json);
         File.Move(tempPath, filePath, overwrite: true);
+        return id;
     }
 
-    public void Delete(string npcName)
+    /// <summary>Convenience: stamp the NPC name and save a new preset.</summary>
+    public string Save(string npcName, NpcOverrideEntry data)
     {
-        var filePath = Path.Combine(_presetsDir, $"{npcName}.json");
+        data.NpcName = npcName;
+        return Save(data);
+    }
+
+    /// <summary>Delete a single preset by its file id (from LoadAll).</summary>
+    public void Delete(string id)
+    {
+        var filePath = Path.Combine(_presetsDir, $"{id}.json");
         try { if (File.Exists(filePath)) File.Delete(filePath); }
         catch { }
-    }
-
-    public bool HasPreset(string npcName)
-    {
-        return File.Exists(Path.Combine(_presetsDir, $"{npcName}.json"));
     }
 }

@@ -2,7 +2,7 @@
   "Name": "AliveNpcs Personality Manager",
   "Author": "Lucas Gatica",
   "Version": "2.1.0",
-  "Description": "In-game manager for NPC personality overrides, lore, social tags, and character data used by AliveNpcs. Share presets via community gallery.",
+  "Description": "In-game editor for farmer and NPC profiles, including appearance, personality, lore, social tags, character data, and community catalog presets.",
   "UniqueID": "Lucas.AliveNpcsPersonalityEditor",
   "EntryDll": "AliveNpcsPersonalityEditor.dll",
   "MinimumApiVersion": "4.0.0",

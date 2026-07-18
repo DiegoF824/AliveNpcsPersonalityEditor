@@ -9,17 +9,29 @@ public sealed class NpcOverrideEntry
 
     public string CanonicalPersonality { get; set; } = "";
 
+    public string Appearance { get; set; } = "";
+
     public string Lore { get; set; } = "";
 
     public string SocialTags { get; set; } = "";
 
     public string SubmissionCredit { get; set; } = "";
 
+    /// <summary>Preset kind: "" / "npc" for NPC personalities, "farmer" for the player backstory sheet.</summary>
+    public string PresetType { get; set; } = "";
+
     public CharacterDataOverride? CharacterData { get; set; }
+
+    /// <summary>True when this preset represents the farmer/player character sheet rather than an NPC.</summary>
+    [JsonIgnore]
+    public bool IsFarmer =>
+        string.Equals(PresetType, "farmer", System.StringComparison.OrdinalIgnoreCase)
+        || string.Equals(NpcName, "Farmer", System.StringComparison.OrdinalIgnoreCase);
 
     [JsonIgnore]
     public bool HasAnyField =>
         !string.IsNullOrWhiteSpace(CanonicalPersonality)
+        || !string.IsNullOrWhiteSpace(Appearance)
         || !string.IsNullOrWhiteSpace(Lore)
         || !string.IsNullOrWhiteSpace(SocialTags)
         || !string.IsNullOrWhiteSpace(SubmissionCredit)
@@ -28,7 +40,8 @@ public sealed class NpcOverrideEntry
     [JsonIgnore]
     public bool HasOnlySupplementaryFields =>
         string.IsNullOrWhiteSpace(CanonicalPersonality)
-        && (!string.IsNullOrWhiteSpace(Lore)
+        && (!string.IsNullOrWhiteSpace(Appearance)
+            || !string.IsNullOrWhiteSpace(Lore)
             || !string.IsNullOrWhiteSpace(SocialTags)
             || !string.IsNullOrWhiteSpace(SubmissionCredit));
 

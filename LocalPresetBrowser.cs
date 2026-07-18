@@ -107,8 +107,10 @@ public sealed class LocalPresetBrowser : IClickableMenu
                 cx, cy, CardW, CardH, bg);
 
             var npcName = entries[i].Key;
-            var preview = !string.IsNullOrWhiteSpace(entries[i].Value.SubmissionCredit)
-                ? entries[i].Value.SubmissionCredit
+            var preview = !string.IsNullOrWhiteSpace(entries[i].Value.Appearance)
+                ? entries[i].Value.Appearance
+                : !string.IsNullOrWhiteSpace(entries[i].Value.SubmissionCredit)
+                    ? entries[i].Value.SubmissionCredit
                 : (!string.IsNullOrWhiteSpace(entries[i].Value.CanonicalPersonality)
                     ? entries[i].Value.CanonicalPersonality : "(no preview)");
 

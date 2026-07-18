@@ -16,12 +16,22 @@ public sealed class GalleryService
     };
 
     private readonly HttpClient _client;
-    private readonly string _baseUrl;
+    private string _baseUrl;
 
     public GalleryService(string baseUrl)
     {
-        _baseUrl = baseUrl.TrimEnd('/');
+        _baseUrl = (baseUrl ?? "").TrimEnd('/');
         _client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+    }
+
+    /// <summary>The current gallery server base URL.</summary>
+    public string BaseUrl => _baseUrl;
+
+    /// <summary>Point the service at a different gallery server at runtime.</summary>
+    public void SetBaseUrl(string baseUrl)
+    {
+        if (!string.IsNullOrWhiteSpace(baseUrl))
+            _baseUrl = baseUrl.TrimEnd('/');
     }
 
     public async Task<bool> CheckConnectivityAsync()
@@ -66,6 +76,17 @@ public sealed class GalleryService
         catch { return null; }
     }
 
+    /// <summary>Record an actual download/import of a preset (not a mere view).</summary>
+    public async Task ReportDownloadAsync(string presetId)
+    {
+        try
+        {
+            using var resp = await _client.PostAsync($"{_baseUrl}/api/presets/{presetId}/download", null);
+            _ = resp.IsSuccessStatusCode;
+        }
+        catch { /* best-effort; never block the import on the counter */ }
+    }
+
     public async Task<bool> UploadPresetAsync(string npcName, NpcOverrideEntry data, string author = "Anonymous")
     {
         try
@@ -84,6 +105,16 @@ public sealed class GalleryService
         }
         catch { return false; }
     }
+
+    public async Task<bool> DeletePresetAsync(string presetId)
+    {
+        try
+        {
+            using var resp = await _client.DeleteAsync($"{_baseUrl}/api/presets/{presetId}");
+            return resp.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
 }
 
 public sealed class PresetMetadata
@@ -94,6 +125,7 @@ public sealed class PresetMetadata
     public string Preview { get; set; } = "";
     public string CreatedAt { get; set; } = "";
     public int DownloadCount { get; set; }
+    public bool CanDelete { get; set; }
 }
 
 public sealed class PresetListResponse

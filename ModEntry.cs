@@ -8,6 +8,7 @@ public sealed class ModEntry : Mod
 {
     private PersonalityStore _store = null!;
     private PresetStore _presetStore = null!;
+    private FarmerStore? _farmerStore;
     private EditorConfig _config = null!;
     private IAliveNpcsApi? _api;
     private GalleryService? _galleryService;
@@ -20,16 +21,28 @@ public sealed class ModEntry : Mod
         _presetStore = new PresetStore(helper.DirectoryPath, Monitor);
 
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+        helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.Input.ButtonPressed += OnButtonPressed;
     }
 
     public override object GetApi() => new PersonalityEditorApi(this);
 
-    public void OpenEditorMenu()
+    public void OpenEditorMenu() => OpenMenuAtTab(1);
+
+    public void OpenFarmerTab() => OpenMenuAtTab(0);
+
+    private void OpenMenuAtTab(int tab)
     {
         if (_api == null || !Context.IsWorldReady) return;
+        _farmerStore?.Load();
         Game1.activeClickableMenu = new PersonalityEditorMenu(
-            _store, _presetStore, _api, _config, _galleryService, Monitor, Helper.Translation);
+            _store, _presetStore, _farmerStore!, _api, _config, _galleryService, Monitor, Helper.Translation,
+            onServerUrlSaved: url =>
+            {
+                _config.GalleryServerUrl = url;
+                Helper.WriteConfig(_config);
+            },
+            initialTab: tab);
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -40,6 +53,10 @@ public sealed class ModEntry : Mod
             Monitor.Log("AliveNpcs not found — personality editor cannot function.", LogLevel.Error);
             return;
         }
+
+        var alivenpcsDir = ResolveAliveNpcsDirectory();
+        _farmerStore = new FarmerStore(alivenpcsDir ?? Helper.DirectoryPath, Monitor);
+        Monitor.Log($"FarmerStore backing dir: {(alivenpcsDir ?? Helper.DirectoryPath)}", LogLevel.Debug);
 
         try
         {
@@ -58,8 +75,46 @@ public sealed class ModEntry : Mod
         }
 
         RegisterGmcmConfig();
+        PushCharacterDataPromptSetting();
 
-        Monitor.Log($"Personality Editor ready. Press {_config.OpenEditorKey} to open.", LogLevel.Info);
+        Monitor.Log($"Personality Editor ready. Press {_config.OpenFarmerTabKey} for Farmer tab, {_config.OpenEditorKey} for NPCs/Catalog.", LogLevel.Info);
+    }
+
+    private void PushCharacterDataPromptSetting()
+    {
+        try { _api?.SetCharacterDataPromptEnabled(_config.IncludeCharacterDataInPrompt); }
+        catch (Exception ex) { Monitor.Log($"Could not push CharacterData prompt setting: {ex.Message}", LogLevel.Trace); }
+    }
+
+    private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+    {
+        _farmerStore?.Load();
+    }
+
+    private string? ResolveAliveNpcsDirectory()
+    {
+        try
+        {
+            var editorDir = Helper.DirectoryPath;
+            var modsRoot = System.IO.Path.GetDirectoryName(editorDir);
+            if (!string.IsNullOrEmpty(modsRoot))
+            {
+                var candidates = new[] { "AliveNpcs", "AliveNpcsRevamp", "AliveNpcsRevamp-experimental", "Lucas.AliveNpcs" };
+                foreach (var cand in candidates)
+                {
+                    var full = System.IO.Path.Combine(modsRoot, cand);
+                    if (System.IO.Directory.Exists(full))
+                        return full;
+                }
+            }
+            var info = Helper.ModRegistry.Get("Lucas.AliveNpcs");
+            return info is null ? null : editorDir;
+        }
+        catch (Exception ex)
+        {
+            Monitor.Log($"Could not resolve AliveNpcs directory ({ex.GetType().Name}): {ex.Message}", LogLevel.Trace);
+            return null;
+        }
     }
 
     private void RegisterGmcmConfig()
@@ -81,7 +136,16 @@ public sealed class ModEntry : Mod
                     _galleryService = new GalleryService(_config.GalleryServerUrl);
                 else
                     _galleryService = null;
+                PushCharacterDataPromptSetting();
             });
+
+            gmcm.AddSectionTitle(modManifest, () => Helper.Translation.Get("config.chardata.section"));
+            gmcm.AddParagraph(modManifest, () => Helper.Translation.Get("config.chardata.disclaimer"));
+            gmcm.AddBoolOption(modManifest,
+                () => _config.IncludeCharacterDataInPrompt,
+                v => _config.IncludeCharacterDataInPrompt = v,
+                () => Helper.Translation.Get("config.chardata.toggle"),
+                () => Helper.Translation.Get("config.chardata.toggle.tooltip"));
 
             gmcm.AddSectionTitle(modManifest, () => Helper.Translation.Get("gallery.config.enabled"));
             gmcm.AddParagraph(modManifest, () => Helper.Translation.Get("gallery.config.description"));
@@ -107,10 +171,18 @@ public sealed class ModEntry : Mod
     {
         if (_api == null) return;
         if (!Context.IsWorldReady) return;
-        if (e.Button != _config.OpenEditorKey) return;
         if (Game1.activeClickableMenu != null) return;
 
-        Game1.activeClickableMenu = new PersonalityEditorMenu(
-            _store, _presetStore, _api, _config, _galleryService, Monitor, Helper.Translation);
+        if (e.Button == _config.OpenFarmerTabKey && _config.OverrideCharacterSheet)
+        {
+            OpenMenuAtTab(0);
+            Helper.Input.Suppress(e.Button);
+            return;
+        }
+
+        if (e.Button == _config.OpenEditorKey)
+        {
+            OpenMenuAtTab(1);
+        }
     }
 }
