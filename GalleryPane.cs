@@ -36,6 +36,7 @@ public sealed class GalleryPane
     private Rectangle _searchBox;
     private Rectangle _searchButton;
     private GalleryPreviewModal? _preview;
+    private CharacterDataWarning? _warning;
 
     // NPC filter dropdown (replaces the old "All" button).
     private readonly List<string> _npcFilterNames = new();
@@ -236,6 +237,7 @@ public sealed class GalleryPane
 
         DrawNpcDropdown(b);
         _preview?.Draw(b);
+        _warning?.Draw(b);
         DrawServerEditor(b);
     }
 
@@ -584,6 +586,11 @@ public sealed class GalleryPane
 
     public void receiveLeftClick(int x, int y)
     {
+        if (_warning != null)
+        {
+            _warning.receiveLeftClick(x, y);
+            return;
+        }
         if (_preview != null)
         {
             _preview.receiveLeftClick(x, y);
@@ -700,23 +707,25 @@ public sealed class GalleryPane
         {
             // Import: copy into the LOCAL gallery only (does not touch the live NPC).
             new(_i18n.Get("gallery.button.import").ToString(), new Color(120, 190, 100), () =>
-            {
-                _presetStore?.Save(npc, entry);
-                _ = _service.ReportDownloadAsync(preset.Id);
-                Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.preset.saved", new { npcName = npc }), 3));
-                Game1.playSound("coin");
-                _preview = null;
-            }),
+                GuardCharacterData(entry, () =>
+                {
+                    _presetStore?.Save(npc, entry);
+                    _ = _service.ReportDownloadAsync(preset.Id);
+                    Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.preset.saved", new { npcName = npc }), 3));
+                    Game1.playSound("coin");
+                    _preview = null;
+                })),
             // Import & Apply: save locally AND apply live (NPC personality or farmer sheet).
             new(_i18n.Get("gallery.button.import_apply").ToString(), new Color(90, 160, 80), () =>
-            {
-                _presetStore?.Save(npc, entry);
-                _ = _service.ReportDownloadAsync(preset.Id);
-                ApplyEntry(npc, entry);
-                Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.import.success", new { npcName = npc }), 3));
-                Game1.playSound("coin");
-                _preview = null;
-            }),
+                GuardCharacterData(entry, () =>
+                {
+                    _presetStore?.Save(npc, entry);
+                    _ = _service.ReportDownloadAsync(preset.Id);
+                    ApplyEntry(npc, entry);
+                    Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.import.success", new { npcName = npc }), 3));
+                    Game1.playSound("coin");
+                    _preview = null;
+                })),
         };
         if (preset.CanDelete)
             actions.Add(new(_i18n.Get("gallery.button.delete").ToString(), new Color(225, 125, 85),
@@ -757,6 +766,24 @@ public sealed class GalleryPane
         _onImported();
     }
 
+    // Show a confirmation popup before importing/applying a preset that overrides the
+    // game's Data/Characters; run the action directly when there is no such change.
+    private void GuardCharacterData(NpcOverrideEntry entry, Action apply)
+    {
+        if (!entry.HasCharacterDataOverride)
+        {
+            apply();
+            return;
+        }
+        _warning = new CharacterDataWarning(
+            _i18n.Get("gallery.warning.title").ToString(),
+            _i18n.Get("gallery.warning.character_data").ToString(),
+            _i18n.Get("button.confirm").ToString(),
+            _i18n.Get("button.cancel").ToString(),
+            () => { _warning = null; apply(); },
+            () => { _warning = null; });
+    }
+
     private void OpenLocalPreview((string Id, string Npc, NpcOverrideEntry Entry) preset)
     {
         var npc = preset.Npc;
@@ -768,12 +795,13 @@ public sealed class GalleryPane
         var actions = new List<GalleryPreviewModal.PreviewAction>
         {
             new(_i18n.Get("gallery.button.apply").ToString(), new Color(90, 160, 80), () =>
-            {
-                ApplyEntry(npc, entry);
-                Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.import.success", new { npcName = npc }), 3));
-                Game1.playSound("coin");
-                _preview = null;
-            }),
+                GuardCharacterData(entry, () =>
+                {
+                    ApplyEntry(npc, entry);
+                    Game1.addHUDMessage(new HUDMessage(_i18n.Get("gallery.import.success", new { npcName = npc }), 3));
+                    Game1.playSound("coin");
+                    _preview = null;
+                })),
             new(_i18n.Get("gallery.button.upload").ToString(), new Color(120, 190, 100), () =>
             {
                 UploadLocal(npc, entry);
@@ -794,6 +822,8 @@ public sealed class GalleryPane
 
     public void receiveScrollWheelAction(int direction)
     {
+        if (_warning != null)
+            return;
         if (_editingServer)
             return;
         if (_preview != null)
@@ -824,6 +854,11 @@ public sealed class GalleryPane
         {
             if (key == Keys.Enter) SaveServerUrl();
             else if (key == Keys.Escape) CloseServerEditor();
+            return true;
+        }
+        if (_warning != null)
+        {
+            if (key == Keys.Escape) _warning = null;
             return true;
         }
         if (_preview != null)
@@ -1112,5 +1147,69 @@ public sealed class GalleryPreviewModal
     {
         if (key == Keys.Escape)
             _onClose();
+    }
+}
+
+/// <summary>
+/// A small confirmation popup shown before importing or applying a preset that
+/// overrides the game's Data/Characters. Confirm proceeds; Cancel backs out.
+/// </summary>
+internal sealed class CharacterDataWarning
+{
+    private readonly string _title;
+    private readonly string _message;
+    private readonly string _confirmLabel;
+    private readonly string _cancelLabel;
+    private readonly Action _onConfirm;
+    private readonly Action _onCancel;
+    private Rectangle _confirmBtn;
+    private Rectangle _cancelBtn;
+
+    public CharacterDataWarning(string title, string message, string confirmLabel, string cancelLabel, Action onConfirm, Action onCancel)
+    {
+        _title = title;
+        _message = message;
+        _confirmLabel = confirmLabel;
+        _cancelLabel = cancelLabel;
+        _onConfirm = onConfirm;
+        _onCancel = onCancel;
+    }
+
+    public void Draw(SpriteBatch b)
+    {
+        var vp = Game1.uiViewport;
+        b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, vp.Width, vp.Height), Color.Black * 0.55f);
+
+        var w = Math.Min(760, vp.Width - 80);
+        var wrapped = Game1.parseText(_message, Game1.smallFont, w - 64);
+        var msgH = (int)Game1.smallFont.MeasureString(wrapped).Y;
+        var h = 96 + msgH + 90;
+        var box = new Rectangle((vp.Width - w) / 2, (vp.Height - h) / 2, w, h);
+        EditorTheme.DrawFrame(b, box, new Color(255, 248, 234));
+
+        Utility.drawTextWithShadow(b, _title, Game1.dialogueFont,
+            new Vector2(box.X + 28, box.Y + 22), new Color(170, 70, 40));
+        b.DrawString(Game1.smallFont, wrapped, new Vector2(box.X + 32, box.Y + 78), new Color(70, 50, 35));
+
+        var btnW = Math.Min(230, (w - 96) / 2);
+        var btnY = box.Bottom - 74;
+        _cancelBtn = new Rectangle(box.X + 32, btnY, btnW, 56);
+        _confirmBtn = new Rectangle(box.Right - btnW - 32, btnY, btnW, 56);
+        EditorTheme.DrawButton(b, _cancelBtn, _cancelLabel, new Color(255, 248, 234), Color.Black);
+        EditorTheme.DrawButton(b, _confirmBtn, _confirmLabel, new Color(225, 150, 70), Color.Black);
+    }
+
+    public void receiveLeftClick(int x, int y)
+    {
+        if (_confirmBtn.Contains(x, y))
+        {
+            Game1.playSound("smallSelect");
+            _onConfirm();
+        }
+        else if (_cancelBtn.Contains(x, y))
+        {
+            Game1.playSound("bigDeSelect");
+            _onCancel();
+        }
     }
 }

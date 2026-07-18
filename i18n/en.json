@@ -21,6 +21,8 @@
   "field.character_data.expand": "Show Character Data",
   "field.character_data.collapse": "Hide Character Data",
   "field.character_data.locked": "Enable Character Data in the mod config (GMCM) to edit these fields.",
+  "gallery.warning.title": "Character Data change",
+  "gallery.warning.character_data": "This preset changes the character's game data (name, gender, romance, and so on). These override the base game and can conflict with other mods. Continue?",
   "field.display_name": "Display Name",
   "field.gender": "Gender",
   "field.gender.0": "Male",

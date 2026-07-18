@@ -88,6 +88,11 @@ public sealed class PersonalityEditModal : IClickableMenu
     private static readonly Color CancelColor = new(225, 125, 85);
     private static readonly Color ResetColor = new(205, 160, 95);
     private static readonly Color LockedPaper = new(232, 224, 208);
+    private static readonly Color CdButtonBrown = new(125, 60, 40);   // expand/collapse button
+    private static readonly Color CdPanelBg = new(140, 110, 70);       // background box behind expanded options
+    private static readonly Color CdPanelLabel = new(245, 235, 214);   // light label text on the brown panel
+
+    private Rectangle _cdButtonRect;
 
     private static readonly string[] Genders = { "field.gender.0", "field.gender.1" };
     private static readonly string[] Manners = { "field.manner.0", "field.manner.1", "field.manner.2" };
@@ -412,16 +417,25 @@ public sealed class PersonalityEditModal : IClickableMenu
         DrawTextField(b, RowY(Row.Credit), "field.submission_credit", _creditBox);
 
         // Character Data overrides (collapsible, gated by the disclaimer opt-in).
+        if (_cdExpanded && CanEditCharacterData)
+        {
+            // Brown background box grouping the override options (matches the original design).
+            var panelTop = ContentY(RowY(Row.Name)) - 12;
+            var panelBottom = ContentY(RowY(Row.Romance)) + SelectorH + 18;
+            drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60),
+                _scrollArea.X, panelTop, _scrollArea.Width - 34, panelBottom - panelTop, CdPanelBg);
+        }
+
         DrawCdHeader(b);
         if (_cdExpanded && CanEditCharacterData)
         {
-            DrawTextField(b, RowY(Row.Name), "field.display_name", _nameBox);
-            DrawSelectorRow(b, RowY(Row.Gender), "field.gender", _gender, Genders);
-            DrawSelectorRow(b, RowY(Row.Manner), "field.manner", _manner, Manners);
-            DrawSelectorRow(b, RowY(Row.Anxiety), "field.social_anxiety", _socialAnxiety, Anxieties, wrapLabel: true);
-            DrawSelectorRow(b, RowY(Row.Optimism), "field.optimism", _optimism, Optimisms);
-            DrawToggleRow(b, RowY(Row.Socialize), "field.can_socialize", _canSocialize);
-            DrawToggleRow(b, RowY(Row.Romance), "field.can_be_romanced", _canBeRomanced, _age == 2);
+            DrawTextField(b, RowY(Row.Name), "field.display_name", _nameBox, CdPanelLabel);
+            DrawSelectorRow(b, RowY(Row.Gender), "field.gender", _gender, Genders, labelColor: CdPanelLabel);
+            DrawSelectorRow(b, RowY(Row.Manner), "field.manner", _manner, Manners, labelColor: CdPanelLabel);
+            DrawSelectorRow(b, RowY(Row.Anxiety), "field.social_anxiety", _socialAnxiety, Anxieties, wrapLabel: true, labelColor: CdPanelLabel);
+            DrawSelectorRow(b, RowY(Row.Optimism), "field.optimism", _optimism, Optimisms, labelColor: CdPanelLabel);
+            DrawToggleRow(b, RowY(Row.Socialize), "field.can_socialize", _canSocialize, labelColor: CdPanelLabel);
+            DrawToggleRow(b, RowY(Row.Romance), "field.can_be_romanced", _canBeRomanced, _age == 2, labelColor: CdPanelLabel);
         }
 
         b.End();
@@ -448,37 +462,38 @@ public sealed class PersonalityEditModal : IClickableMenu
             new Vector2(rect.X + 14, rect.Y + (rect.Height - Game1.smallFont.MeasureString(label).Y) / 2f),
             locked ? Color.Gray : Border);
 
-        string right;
-        Color rightColor;
         if (locked)
         {
-            right = _i18n.Get("field.character_data.locked").ToString();
-            rightColor = Color.Gray;
-        }
-        else
-        {
-            right = _i18n.Get(_cdExpanded ? "field.character_data.collapse" : "field.character_data.expand").ToString();
-            rightColor = Active;
+            // Gray hint on the right, no button.
+            _cdButtonRect = Rectangle.Empty;
+            var hint = _i18n.Get("field.character_data.locked").ToString();
+            var hsize = Game1.smallFont.MeasureString(hint);
+            var maxRight = rect.Width - 200;
+            if (hsize.X > maxRight)
+            {
+                hint = Game1.parseText(hint, Game1.smallFont, (int)maxRight);
+                hsize = Game1.smallFont.MeasureString(hint);
+            }
+            Utility.drawTextWithShadow(b, hint, Game1.smallFont,
+                new Vector2(rect.Right - hsize.X - 14, rect.Y + (rect.Height - hsize.Y) / 2f), Color.Gray);
+            return;
         }
 
-        var rsize = Game1.smallFont.MeasureString(right);
-        var maxRight = rect.Width - 200;
-        if (rsize.X > maxRight)
-        {
-            right = Game1.parseText(right, Game1.smallFont, (int)maxRight);
-            rsize = Game1.smallFont.MeasureString(right);
-        }
-        Utility.drawTextWithShadow(b, right, Game1.smallFont,
-            new Vector2(rect.Right - rsize.X - 14, rect.Y + (rect.Height - rsize.Y) / 2f), rightColor);
+        // Brown expand/collapse button with white font on the right.
+        var btnLabel = _i18n.Get(_cdExpanded ? "field.character_data.collapse" : "field.character_data.expand").ToString();
+        var bw = (int)Game1.smallFont.MeasureString(btnLabel).X + 34;
+        var bh = rect.Height - 12;
+        _cdButtonRect = new Rectangle(rect.Right - bw - 8, rect.Y + 6, bw, bh);
+        EditorTheme.DrawButton(b, _cdButtonRect, btnLabel, CdButtonBrown, Color.White);
     }
 
-    private void DrawSelectorRow(SpriteBatch b, int relativeY, string labelKey, int selected, string[] options, bool wrapLabel = false)
+    private void DrawSelectorRow(SpriteBatch b, int relativeY, string labelKey, int selected, string[] options, bool wrapLabel = false, Color? labelColor = null)
     {
         var y = ContentY(relativeY);
         var label = _i18n.Get(labelKey).ToString();
         if (wrapLabel)
             label = Game1.parseText(label, Game1.smallFont, LabelColumnW - 12);
-        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(_scrollArea.X, y + 5), Color.Black);
+        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(_scrollArea.X, y + 5), labelColor ?? Color.Black);
 
         var area = GetSelectorArea(y);
         var gap = 24;
@@ -490,19 +505,19 @@ public sealed class PersonalityEditModal : IClickableMenu
         }
     }
 
-    private void DrawToggleRow(SpriteBatch b, int relativeY, string labelKey, bool value, bool disabled = false)
+    private void DrawToggleRow(SpriteBatch b, int relativeY, string labelKey, bool value, bool disabled = false, Color? labelColor = null)
     {
         var y = ContentY(relativeY);
         var label = Game1.parseText(_i18n.Get(labelKey), Game1.smallFont, LabelColumnW - 10);
-        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(_scrollArea.X, y), disabled ? Color.Gray : Color.Black);
+        Utility.drawTextWithShadow(b, label, Game1.smallFont, new Vector2(_scrollArea.X, y), disabled ? Color.Gray : (labelColor ?? Color.Black));
         var rect = new Rectangle(_scrollArea.Right - 90, y, 58, SelectorH);
         DrawChoiceButton(b, rect, value ? "ON" : "OFF", value, disabled);
     }
 
-    private void DrawTextField(SpriteBatch b, int relativeY, string labelKey, MultilineTextBox box)
+    private void DrawTextField(SpriteBatch b, int relativeY, string labelKey, MultilineTextBox box, Color? labelColor = null)
     {
         Utility.drawTextWithShadow(b, _i18n.Get(labelKey), Game1.smallFont,
-            new Vector2(_scrollArea.X, ContentY(relativeY)), Color.Black);
+            new Vector2(_scrollArea.X, ContentY(relativeY)), labelColor ?? Color.Black);
         box.Draw(b);
     }
 
