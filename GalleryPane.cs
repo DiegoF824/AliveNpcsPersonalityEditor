@@ -61,6 +61,7 @@ public sealed class GalleryPane
     private const int SearchH = 40;
     private const int CardSize = 194;
     private const int CardRowGap = 32;
+    private const int MaxCardGap = 40;   // cap the horizontal gap so wide grids don't spread cards apart
     private static readonly Color Active = new(235, 155, 45);
     private static readonly Color Paper = new(255, 248, 234);
     private static readonly Color Border = new(125, 60, 40);
@@ -170,7 +171,7 @@ public sealed class GalleryPane
         var gridTop = area.Y + DiscoverH + 92;
         var gridArea = new Rectangle(area.X, gridTop, area.Width, area.Bottom - gridTop);
         var columns = Math.Clamp((gridArea.Width + 40) / (CardSize + 40), 1, 4);
-        var gap = columns > 1 ? (gridArea.Width - columns * CardSize) / (columns - 1) : 0;
+        var gap = columns > 1 ? Math.Min(MaxCardGap, (gridArea.Width - columns * CardSize) / (columns - 1)) : 0;
         var used = columns * CardSize + Math.Max(0, columns - 1) * gap;
         return (gridArea, columns, gap, gridArea.X + (gridArea.Width - used) / 2);
     }

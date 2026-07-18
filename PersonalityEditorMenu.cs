@@ -40,7 +40,8 @@ public sealed class PersonalityEditorMenu : IClickableMenu
     private const int TabStripH = 48;      // raised tabs sitting on the window's top edge
     private const int CategoryBarH = 44;   // NPC category button row (NPCs tab only)
     private const int CardSize = 194;
-    private const int CardRowGap = 64;
+    private const int CardRowGap = 32;
+    private const int MaxCardGap = 40;   // cap the horizontal gap so wide grids don't spread cards apart
     private const int PortraitSourceSize = 64;
 
     private static readonly Color TabActive = new(235, 155, 45);
@@ -386,7 +387,7 @@ public sealed class PersonalityEditorMenu : IClickableMenu
     private (int Columns, int Gap, int StartX) GetNpcGridLayout()
     {
         var columns = Math.Clamp((_npcGridArea.Width + 40) / (CardSize + 40), 1, 4);
-        var gap = columns > 1 ? (_npcGridArea.Width - columns * CardSize) / (columns - 1) : 0;
+        var gap = columns > 1 ? Math.Min(MaxCardGap, (_npcGridArea.Width - columns * CardSize) / (columns - 1)) : 0;
         var used = columns * CardSize + Math.Max(0, columns - 1) * gap;
         return (columns, gap, _npcGridArea.X + (_npcGridArea.Width - used) / 2);
     }

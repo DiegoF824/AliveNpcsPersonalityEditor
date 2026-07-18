@@ -79,9 +79,8 @@ public sealed class PersonalityEditModal : IClickableMenu
     // Character Data section (inside the brown panel).
     private const int CdPad = 22;            // inner padding between the panel frame and its content
     private const int HeaderBlock = 82;      // header row -> first CD row (leaves top padding inside the panel)
-    private const int CdNameBlock = 118;     // Display Name (short text)
-    private const int CdRowBlock = 76;       // selector / toggle rows (even vertical rhythm)
-    private const int CdWrapBlock = 90;      // rows whose label can wrap (social anxiety, can be romanced)
+    private const int CdNameBlock = 132;     // Display Name (short text) -> uniform gap into the first selector
+    private const int CdRowBlock = 76;       // every selector / toggle row (uniform vertical rhythm)
 
     private static readonly Color Paper = new(255, 248, 234);
     private static readonly Color Border = new(125, 60, 40);
@@ -215,10 +214,10 @@ public sealed class PersonalityEditModal : IClickableMenu
             Place(Row.Name, CdNameBlock);
             Place(Row.Gender, CdRowBlock);
             Place(Row.Manner, CdRowBlock);
-            Place(Row.Anxiety, CdWrapBlock);
+            Place(Row.Anxiety, CdRowBlock);
             Place(Row.Optimism, CdRowBlock);
             Place(Row.Socialize, CdRowBlock);
-            Place(Row.Romance, CdWrapBlock);
+            Place(Row.Romance, CdRowBlock);
         }
 
         _contentHeight = y + 24;
