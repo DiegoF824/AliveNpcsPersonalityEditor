@@ -1,0 +1,197 @@
+{
+  "DisplayName": "Scarlett",
+  "BirthSeason": "Summer",
+  "BirthDay": 7,
+  "HomeRegion": "Other",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Teen",
+  "Manner": "Polite",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Positive",
+  "IsDarkSkinned": true,
+  "CanBeRomanced": true,
+  "LoveInterest": "",
+  "Calendar": "HiddenUntilMet",
+  "SocialTab": "HiddenUntilMet",
+  "CanSocialize": "PLAYER_HAS_SEEN_EVENT Any 3691371",
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "True",
+  "IntroductionsQuest": false,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": "Custom_ScarlettRoom",
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 6,
+      "Top": 0,
+      "Bottom": 9,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 0
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 3,
+        "Y": 4
+      },
+      "X": 0,
+      "Y": 0,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": "Scarlett_Spouse_Area",
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 4,
+      "Top": 0,
+      "Bottom": 4,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 0
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 2,
+        "Y": 2
+      },
+      "X": 0,
+      "Y": 0,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        0,
+        4000
+      ],
+      [
+        27,
+        1000
+      ],
+      [
+        0,
+        3000
+      ],
+      [
+        18,
+        2000
+      ],
+      [
+        0,
+        4000
+      ],
+      [
+        27,
+        1000
+      ],
+      [
+        0,
+        3000
+      ],
+      [
+        19,
+        3000
+      ],
+      [
+        0,
+        3000
+      ],
+      [
+        27,
+        3500
+      ],
+      [
+        0,
+        2000
+      ],
+      [
+        18,
+        2250
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": "PLAYER_HAS_SEEN_EVENT Any 3691371",
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "FlashShifter.StardewValleyExpandedCP_ScarlettHouse",
+      "Condition": null,
+      "Location": "Custom_ScarlettHouse",
+      "Tile": {
+        "X": 8,
+        "Y": 6
+      },
+      "Direction": "Down"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": "!false",
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Scarlett_Winter",
+      "Sprite": "Characters/Scarlett_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 0
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": -1,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": -1,
+  "CustomFields": {}
+}

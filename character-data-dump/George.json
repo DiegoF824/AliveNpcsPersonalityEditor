@@ -1,0 +1,96 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:George]",
+  "BirthSeason": "Fall",
+  "BirthDay": 24,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Adult",
+  "Manner": "Rude",
+  "SocialAnxiety": "Neutral",
+  "Optimism": "Negative",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": false,
+  "LoveInterest": "Evelyn",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "FALSE",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": null,
+  "SpousePatio": null,
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Evelyn": "[LocalizedText Strings\\Characters:Relative_Wife]",
+    "Alex": "[LocalizedText Strings\\Characters:Relative_Grandson]"
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "JoshHouse",
+      "Tile": {
+        "X": 16,
+        "Y": 22
+      },
+      "Direction": "up"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/George_Winter",
+      "Sprite": "Characters/George_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 16,
+  "HiddenProfileEmoteFrameCount": 4,
+  "HiddenProfileEmoteFrameDuration": 400,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 8,
+  "CustomFields": null
+}

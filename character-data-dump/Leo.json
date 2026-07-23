@@ -1,0 +1,103 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Leo]",
+  "BirthSeason": "Summer",
+  "BirthDay": 26,
+  "HomeRegion": "Other",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Child",
+  "Manner": "Neutral",
+  "SocialAnxiety": "Shy",
+  "Optimism": "Neutral",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": false,
+  "LoveInterest": null,
+  "Calendar": "AlwaysShown",
+  "SocialTab": "AlwaysShown",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": null,
+  "IntroductionsQuest": false,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": null,
+  "SpousePatio": null,
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": "PLAYER_HAS_MAIL Host leoMoved",
+  "UnlockConditions": "PLAYER_HAS_MAIL Host addedParrotBoy",
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Valley",
+      "Condition": "PLAYER_HAS_MAIL Host leoMoved",
+      "Location": "LeoTreeHouse",
+      "Tile": {
+        "X": 5,
+        "Y": 4
+      },
+      "Direction": "down"
+    },
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "IslandHut",
+      "Tile": {
+        "X": 5,
+        "Y": 6
+      },
+      "Direction": "down"
+    }
+  ],
+  "TextureName": "ParrotBoy",
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/ParrotBoy_Winter",
+      "Sprite": "Characters/ParrotBoy_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": false,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": "parrot_squawk",
+  "HiddenProfileEmoteDuration": 300,
+  "HiddenProfileEmoteStartFrame": 17,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 34,
+  "CustomFields": null
+}

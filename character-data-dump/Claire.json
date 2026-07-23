@@ -1,0 +1,393 @@
+{
+  "DisplayName": "Claire",
+  "BirthSeason": "Fall",
+  "BirthDay": 8,
+  "HomeRegion": "Other",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Adult",
+  "Manner": "Rude",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Neutral",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": "True",
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "PLAYER_NPC_RELATIONSHIP ANY Claire MARRIED, ANY \u0022WEATHER TOWN Rain, DAY_OF_WEEK Tue Fri Sat\u0022 \u0022WEATHER TOWN Rain, DAY_OF_WEEK Wed, PLAYER_HAS_SEEN_EVENT ANY 3691371\u0022",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": "Custom_ClairesRoom",
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 6,
+      "Top": 0,
+      "Bottom": 9,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 0
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 3,
+        "Y": 4
+      },
+      "X": 0,
+      "Y": 0,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": "Claire_Spouse_Area",
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 4,
+      "Top": 0,
+      "Bottom": 4,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 0
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 2,
+        "Y": 2
+      },
+      "X": 0,
+      "Y": 0,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        0,
+        5000
+      ],
+      [
+        20,
+        2000
+      ],
+      [
+        21,
+        2000
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        20,
+        2000
+      ],
+      [
+        0,
+        3800
+      ],
+      [
+        20,
+        2000
+      ],
+      [
+        21,
+        2000
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ],
+      [
+        24,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        20,
+        2000
+      ],
+      [
+        0,
+        4000
+      ],
+      [
+        12,
+        200
+      ],
+      [
+        8,
+        3900
+      ],
+      [
+        12,
+        200
+      ],
+      [
+        0,
+        1600
+      ],
+      [
+        34,
+        200
+      ],
+      [
+        35,
+        32300
+      ],
+      [
+        34,
+        200
+      ],
+      [
+        0,
+        600
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": "PLAYER_HAS_SEEN_EVENT ANY 3219873",
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "FlashShifter.StardewValleyExpandedCP_Claire_WarpRoom",
+      "Condition": null,
+      "Location": "Custom_Claire_WarpRoom",
+      "Tile": {
+        "X": 3,
+        "Y": 3
+      },
+      "Direction": "down"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": "!LOCATION_NAME Target JojaMart, !LOCATION_NAME Target MovieTheater, !false",
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Claire_Winter",
+      "Sprite": "Characters/Claire_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 0
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": -1,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": -1,
+  "CustomFields": {}
+}

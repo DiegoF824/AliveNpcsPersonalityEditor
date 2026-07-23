@@ -1,0 +1,245 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Leah]",
+  "BirthSeason": "Winter",
+  "BirthDay": 23,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Neutral",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "Elliott",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": null,
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 12,
+      "Right": 18,
+      "Top": 0,
+      "Bottom": 9,
+      "IsEmpty": false,
+      "Location": {
+        "X": 12,
+        "Y": 0
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 15,
+        "Y": 4
+      },
+      "X": 12,
+      "Y": 0,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 8,
+      "Right": 12,
+      "Top": 0,
+      "Bottom": 4,
+      "IsEmpty": false,
+      "Location": {
+        "X": 8,
+        "Y": 0
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 10,
+        "Y": 2
+      },
+      "X": 8,
+      "Y": 0,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        16,
+        100
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        19,
+        300
+      ],
+      [
+        16,
+        100
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        19,
+        1000
+      ],
+      [
+        16,
+        100
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        19,
+        300
+      ],
+      [
+        16,
+        100
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        19,
+        300
+      ],
+      [
+        16,
+        100
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        19,
+        2000
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [
+    "4",
+    "4",
+    "1",
+    "0",
+    "8",
+    "4",
+    "3",
+    "4",
+    "5",
+    "9",
+    "2",
+    "3",
+    "7",
+    "2",
+    "9"
+  ],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "LeahHouse",
+      "Tile": {
+        "X": 3,
+        "Y": 7
+      },
+      "Direction": "left"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Leah_Winter",
+      "Sprite": "Characters/Leah_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 25,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 16,
+  "HiddenProfileEmoteFrameCount": 4,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 16,
+  "CustomFields": null
+}

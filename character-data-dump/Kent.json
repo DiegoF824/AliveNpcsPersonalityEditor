@@ -1,0 +1,97 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Kent]",
+  "BirthSeason": "Spring",
+  "BirthDay": 4,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Adult",
+  "Manner": "Neutral",
+  "SocialAnxiety": "Shy",
+  "Optimism": "Negative",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": false,
+  "LoveInterest": "Jodi",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "AlwaysShown",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": null,
+  "IntroductionsQuest": false,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": null,
+  "SpousePatio": null,
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Jodi": "[LocalizedText Strings\\Characters:Relative_Wife]",
+    "Sam": "[LocalizedText Strings\\Characters:Relative_EldestSon]",
+    "Vincent": "[LocalizedText Strings\\Characters:Relative_YoungestBoy]"
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": "YEAR 2",
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "SamHouse",
+      "Tile": {
+        "X": 22,
+        "Y": 5
+      },
+      "Direction": "up"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Kent_Winter",
+      "Sprite": "Characters/Kent_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 16,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 15,
+  "CustomFields": null
+}

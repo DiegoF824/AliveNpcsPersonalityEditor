@@ -1,0 +1,93 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Linus]",
+  "BirthSeason": "Winter",
+  "BirthDay": 3,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Adult",
+  "Manner": "Neutral",
+  "SocialAnxiety": "Shy",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": false,
+  "LoveInterest": "",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "FALSE",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": null,
+  "SpousePatio": null,
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": 5,
+  "DumpsterDiveEmote": 32,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "Tent",
+      "Tile": {
+        "X": 2,
+        "Y": 2
+      },
+      "Direction": "down"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Linus_Winter",
+      "Sprite": "Characters/Linus_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 22,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 18,
+  "CustomFields": null
+}

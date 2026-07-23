@@ -1,0 +1,206 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Haley]",
+  "BirthSeason": "Spring",
+  "BirthDay": 14,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Adult",
+  "Manner": "Rude",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Neutral",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "Alex",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": null,
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 18,
+      "Right": 24,
+      "Top": 0,
+      "Bottom": 9,
+      "IsEmpty": false,
+      "Location": {
+        "X": 18,
+        "Y": 0
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 21,
+        "Y": 4
+      },
+      "X": 18,
+      "Y": 0,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 12,
+      "Right": 16,
+      "Top": 0,
+      "Bottom": 4,
+      "IsEmpty": false,
+      "Location": {
+        "X": 12,
+        "Y": 0
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 14,
+        "Y": 2
+      },
+      "X": 12,
+      "Y": 0,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        30,
+        2000
+      ],
+      [
+        31,
+        200
+      ],
+      [
+        24,
+        2000
+      ],
+      [
+        25,
+        1000
+      ],
+      [
+        32,
+        200
+      ],
+      [
+        33,
+        2000
+      ],
+      [
+        32,
+        200
+      ],
+      [
+        25,
+        200
+      ],
+      [
+        32,
+        200
+      ],
+      [
+        33,
+        2000
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [
+    "1",
+    "7",
+    "1",
+    "0",
+    "3",
+    "5",
+    "4",
+    "9",
+    "8",
+    "4",
+    "9",
+    "9"
+  ],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Emily": "[LocalizedText Strings\\Characters:Relative_Sister]"
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "HaleyHouse",
+      "Tile": {
+        "X": 8,
+        "Y": 7
+      },
+      "Direction": "right"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Haley_Winter",
+      "Sprite": "Characters/Haley_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [
+    5
+  ],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 26,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 10,
+  "CustomFields": null
+}

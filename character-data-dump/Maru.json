@@ -1,0 +1,199 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Maru]",
+  "BirthSeason": "Summer",
+  "BirthDay": 10,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Teen",
+  "Manner": "Neutral",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Positive",
+  "IsDarkSkinned": true,
+  "CanBeRomanced": true,
+  "LoveInterest": "Harvey",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "!DAY_OF_WEEK Tuesday Thursday",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 24,
+      "Right": 30,
+      "Top": 0,
+      "Bottom": 9,
+      "IsEmpty": false,
+      "Location": {
+        "X": 24,
+        "Y": 0
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 27,
+        "Y": 4
+      },
+      "X": 24,
+      "Y": 0,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 16,
+      "Right": 20,
+      "Top": 0,
+      "Bottom": 4,
+      "IsEmpty": false,
+      "Location": {
+        "X": 16,
+        "Y": 0
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 18,
+        "Y": 2
+      },
+      "X": 16,
+      "Y": 0,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        16,
+        4000
+      ],
+      [
+        17,
+        200
+      ],
+      [
+        18,
+        200
+      ],
+      [
+        19,
+        200
+      ],
+      [
+        20,
+        200
+      ],
+      [
+        21,
+        200
+      ],
+      [
+        22,
+        200
+      ],
+      [
+        23,
+        200
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Robin": "[LocalizedText Strings\\Characters:Relative_Mom]",
+    "Demetrius": "[LocalizedText Strings\\Characters:Relative_Dad]",
+    "Sebastian": "[LocalizedText Strings\\Characters:Relative_HalfBrother]"
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "ScienceHouse",
+      "Tile": {
+        "X": 2,
+        "Y": 4
+      },
+      "Direction": "left"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "WorkOutfit",
+      "Condition": "LOCATION_NAME Target Hospital",
+      "Season": null,
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Maru_Hospital",
+      "Sprite": "Characters/Maru_Hospital",
+      "IsIslandAttire": false,
+      "Precedence": -1000,
+      "Weight": 1
+    },
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Maru_Winter",
+      "Sprite": "Characters/Maru_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [
+    9
+  ],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": false,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 16,
+  "HiddenProfileEmoteFrameCount": 8,
+  "HiddenProfileEmoteFrameDuration": 150,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 21,
+  "CustomFields": null
+}

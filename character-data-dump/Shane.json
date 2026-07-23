@@ -1,0 +1,177 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Shane]",
+  "BirthSeason": "Spring",
+  "BirthDay": 20,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Adult",
+  "Manner": "Rude",
+  "SocialAnxiety": "Shy",
+  "Optimism": "Negative",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": null,
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 6,
+      "Top": 18,
+      "Bottom": 27,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 18
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 3,
+        "Y": 22
+      },
+      "X": 0,
+      "Y": 18,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 4,
+      "Top": 8,
+      "Bottom": 12,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 8
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 2,
+        "Y": 10
+      },
+      "X": 0,
+      "Y": 8,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        28,
+        4000
+      ],
+      [
+        29,
+        800
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [
+    "6",
+    "2",
+    "1",
+    "6",
+    "0"
+  ],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Marnie": "[LocalizedText Strings\\Characters:Relative_Aunt]"
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "AnimalShop",
+      "Tile": {
+        "X": 25,
+        "Y": 6
+      },
+      "Direction": "left"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "WorkOutfit",
+      "Condition": "LOCATION_NAME Target JojaMart",
+      "Season": null,
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Shane_JojaMart",
+      "Sprite": "Characters/Shane_JojaMart",
+      "IsIslandAttire": false,
+      "Precedence": -1000,
+      "Weight": 1
+    },
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Shane_Winter",
+      "Sprite": "Characters/Shane_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 34,
+  "KissSpriteFacingRight": false,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 28,
+  "HiddenProfileEmoteFrameCount": 2,
+  "HiddenProfileEmoteFrameDuration": 500,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 28,
+  "CustomFields": null
+}

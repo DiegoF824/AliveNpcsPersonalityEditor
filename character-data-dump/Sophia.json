@@ -1,0 +1,217 @@
+{
+  "DisplayName": "Sophia",
+  "BirthSeason": "Winter",
+  "BirthDay": 27,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Teen",
+  "Manner": "Polite",
+  "SocialAnxiety": "Shy",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": "True",
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "True",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": "Custom_SophiasRoom",
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 6,
+      "Top": 0,
+      "Bottom": 9,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 0
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 3,
+        "Y": 4
+      },
+      "X": 0,
+      "Y": 0,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": "Sophia_Spouse_Area",
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 4,
+      "Top": 0,
+      "Bottom": 4,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 0
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 2,
+        "Y": 2
+      },
+      "X": 0,
+      "Y": 0,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        22,
+        9000
+      ],
+      [
+        23,
+        500
+      ],
+      [
+        22,
+        11000
+      ],
+      [
+        23,
+        500
+      ],
+      [
+        22,
+        6000
+      ],
+      [
+        21,
+        200
+      ],
+      [
+        20,
+        200
+      ],
+      [
+        0,
+        6000
+      ],
+      [
+        4,
+        4500
+      ],
+      [
+        0,
+        300
+      ],
+      [
+        12,
+        4400
+      ],
+      [
+        0,
+        5000
+      ],
+      [
+        39,
+        2200
+      ],
+      [
+        0,
+        3000
+      ],
+      [
+        20,
+        200
+      ],
+      [
+        21,
+        200
+      ],
+      [
+        22,
+        1100
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "FlashShifter.StardewValleyExpandedCP_SophiaHouse",
+      "Condition": null,
+      "Location": "Custom_SophiaHouse",
+      "Tile": {
+        "X": 23,
+        "Y": 6
+      },
+      "Direction": "down"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": "!false",
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Sophia_Winter",
+      "Sprite": "Characters/Sophia_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 0
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": -1,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": -1,
+  "CustomFields": {}
+}

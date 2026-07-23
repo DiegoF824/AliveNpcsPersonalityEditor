@@ -1,0 +1,93 @@
+{
+  "DisplayName": "Susan",
+  "BirthSeason": "Fall",
+  "BirthDay": 28,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Neutral",
+  "Optimism": "Positive",
+  "IsDarkSkinned": true,
+  "CanBeRomanced": false,
+  "LoveInterest": "",
+  "Calendar": "HiddenUntilMet",
+  "SocialTab": "HiddenUntilMet",
+  "CanSocialize": "PLAYER_HAS_SEEN_EVENT Any 1000077",
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "True",
+  "IntroductionsQuest": false,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": null,
+  "SpousePatio": null,
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "FlashShifter.StardewValleyExpandedCP_SusanHouse",
+      "Condition": null,
+      "Location": "Custom_SusanHouse",
+      "Tile": {
+        "X": 4,
+        "Y": 15
+      },
+      "Direction": "left"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": "!false",
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Susan_Winter",
+      "Sprite": "Characters/Susan_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 0
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": -1,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": -1,
+  "CustomFields": {}
+}

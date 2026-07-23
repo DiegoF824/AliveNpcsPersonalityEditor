@@ -1,0 +1,234 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Alex]",
+  "BirthSeason": "Summer",
+  "BirthDay": 13,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Adult",
+  "Manner": "Rude",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "Haley",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": null,
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 6,
+      "Right": 12,
+      "Top": 9,
+      "Bottom": 18,
+      "IsEmpty": false,
+      "Location": {
+        "X": 6,
+        "Y": 9
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 9,
+        "Y": 13
+      },
+      "X": 6,
+      "Y": 9,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 4,
+      "Right": 8,
+      "Top": 4,
+      "Bottom": 8,
+      "IsEmpty": false,
+      "Location": {
+        "X": 4,
+        "Y": 4
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 6,
+        "Y": 6
+      },
+      "X": 4,
+      "Y": 4,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        34,
+        4000
+      ],
+      [
+        33,
+        300
+      ],
+      [
+        28,
+        200
+      ],
+      [
+        29,
+        100
+      ],
+      [
+        30,
+        100
+      ],
+      [
+        31,
+        100
+      ],
+      [
+        32,
+        100
+      ],
+      [
+        31,
+        100
+      ],
+      [
+        30,
+        100
+      ],
+      [
+        29,
+        100
+      ],
+      [
+        28,
+        800
+      ],
+      [
+        29,
+        100
+      ],
+      [
+        30,
+        100
+      ],
+      [
+        31,
+        100
+      ],
+      [
+        32,
+        100
+      ],
+      [
+        31,
+        100
+      ],
+      [
+        30,
+        100
+      ],
+      [
+        29,
+        100
+      ],
+      [
+        28,
+        800
+      ],
+      [
+        33,
+        200
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [
+    "6"
+  ],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "George": "[LocalizedText Strings\\Characters:Relative_Grandpa]",
+    "Evelyn": "[LocalizedText Strings\\Characters:Relative_Grandma]"
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "JoshHouse",
+      "Tile": {
+        "X": 19,
+        "Y": 5
+      },
+      "Direction": "left"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Alex_Winter",
+      "Sprite": "Characters/Alex_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 42,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 16,
+  "HiddenProfileEmoteFrameCount": 8,
+  "HiddenProfileEmoteFrameDuration": 170,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 14,
+  "CustomFields": null
+}

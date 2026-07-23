@@ -1,0 +1,119 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Marnie]",
+  "BirthSeason": "Fall",
+  "BirthDay": 18,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": false,
+  "LoveInterest": "Lewis",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "DAY_OF_WEEK Monday Tuesday",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": null,
+  "SpousePatio": null,
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Lewis": "",
+    "Shane": "[LocalizedText Strings\\Characters:Relative_Nephew]",
+    "Jas": "[LocalizedText Strings\\Characters:Relative_Niece]"
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [
+    {
+      "Condition": null,
+      "Id": "Egg",
+      "ItemId": "(O)176",
+      "RandomItemId": null,
+      "MaxItems": null,
+      "MinStack": 12,
+      "MaxStack": -1,
+      "Quality": -1,
+      "ObjectInternalName": null,
+      "ObjectDisplayName": null,
+      "ObjectColor": null,
+      "ToolUpgradeLevel": -1,
+      "IsRecipe": false,
+      "StackModifiers": null,
+      "StackModifierMode": "Stack",
+      "QualityModifiers": null,
+      "QualityModifierMode": "Stack",
+      "ModData": null,
+      "PerItemCondition": null
+    }
+  ],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "AnimalShop",
+      "Tile": {
+        "X": 12,
+        "Y": 14
+      },
+      "Direction": "down"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Marnie_Winter",
+      "Sprite": "Characters/Marnie_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 28,
+  "HiddenProfileEmoteFrameCount": 4,
+  "HiddenProfileEmoteFrameDuration": 120,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 20,
+  "CustomFields": null
+}

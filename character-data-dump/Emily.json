@@ -1,0 +1,155 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Emily]",
+  "BirthSeason": "Spring",
+  "BirthDay": 27,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "!SEASON_DAY fall 15",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 6,
+      "Right": 12,
+      "Top": 18,
+      "Bottom": 27,
+      "IsEmpty": false,
+      "Location": {
+        "X": 6,
+        "Y": 18
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 9,
+        "Y": 22
+      },
+      "X": 6,
+      "Y": 18,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 4,
+      "Right": 8,
+      "Top": 8,
+      "Bottom": 12,
+      "IsEmpty": false,
+      "Location": {
+        "X": 4,
+        "Y": 8
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 6,
+        "Y": 10
+      },
+      "X": 4,
+      "Y": 8,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        54,
+        4000
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Haley": "[LocalizedText Strings\\Characters:Relative_Sister]"
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "HaleyHouse",
+      "Tile": {
+        "X": 16,
+        "Y": 5
+      },
+      "Direction": "down"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Emily_Winter",
+      "Sprite": "Characters/Emily_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 33,
+  "KissSpriteFacingRight": false,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 16,
+  "HiddenProfileEmoteFrameCount": 2,
+  "HiddenProfileEmoteFrameDuration": 300,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 6,
+  "CustomFields": null
+}

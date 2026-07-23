@@ -1,0 +1,231 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Sebastian]",
+  "BirthSeason": "Winter",
+  "BirthDay": 10,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Teen",
+  "Manner": "Rude",
+  "SocialAnxiety": "Shy",
+  "Optimism": "Negative",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "Abigail",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": null,
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 6,
+      "Top": 9,
+      "Bottom": 18,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 9
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 3,
+        "Y": 13
+      },
+      "X": 0,
+      "Y": 9,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 4,
+      "Top": 4,
+      "Bottom": 8,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 4
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 2,
+        "Y": 6
+      },
+      "X": 0,
+      "Y": 4,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        32,
+        500
+      ],
+      [
+        36,
+        500
+      ],
+      [
+        32,
+        500
+      ],
+      [
+        36,
+        500
+      ],
+      [
+        32,
+        500
+      ],
+      [
+        36,
+        500
+      ],
+      [
+        32,
+        500
+      ],
+      [
+        36,
+        2000
+      ],
+      [
+        33,
+        100
+      ],
+      [
+        34,
+        100
+      ],
+      [
+        35,
+        3000
+      ],
+      [
+        34,
+        100
+      ],
+      [
+        33,
+        100
+      ],
+      [
+        32,
+        1500
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 16,
+      "Y": 40
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [
+    "3",
+    "4",
+    "1",
+    "2",
+    "1",
+    "4",
+    "3",
+    "0",
+    "4",
+    "6",
+    "4",
+    "7",
+    "5",
+    "6",
+    "5",
+    "8",
+    "5",
+    "9",
+    "1",
+    "0",
+    "7"
+  ],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Robin": "[LocalizedText Strings\\Characters:Relative_Mom]",
+    "Maru": "[LocalizedText Strings\\Characters:Relative_HalfSister]",
+    "Sam": ""
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "SebastianRoom",
+      "Tile": {
+        "X": 10,
+        "Y": 9
+      },
+      "Direction": "right"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Sebastian_Winter",
+      "Sprite": "Characters/Sebastian_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 40,
+  "KissSpriteFacingRight": false,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 16,
+  "HiddenProfileEmoteFrameCount": 8,
+  "HiddenProfileEmoteFrameDuration": 180,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 27,
+  "CustomFields": null
+}

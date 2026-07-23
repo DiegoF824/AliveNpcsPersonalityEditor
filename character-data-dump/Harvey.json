@@ -1,0 +1,181 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Harvey]",
+  "BirthSeason": "Winter",
+  "BirthDay": 14,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Shy",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "Maru",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "!DAY_OF_WEEK Tuesday Thursday",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 12,
+      "Right": 18,
+      "Top": 9,
+      "Bottom": 18,
+      "IsEmpty": false,
+      "Location": {
+        "X": 12,
+        "Y": 9
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 15,
+        "Y": 13
+      },
+      "X": 12,
+      "Y": 9,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 8,
+      "Right": 12,
+      "Top": 4,
+      "Bottom": 8,
+      "IsEmpty": false,
+      "Location": {
+        "X": 8,
+        "Y": 4
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 10,
+        "Y": 6
+      },
+      "X": 8,
+      "Y": 4,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        42,
+        6000
+      ],
+      [
+        43,
+        1000
+      ],
+      [
+        39,
+        100
+      ],
+      [
+        43,
+        500
+      ],
+      [
+        39,
+        100
+      ],
+      [
+        43,
+        1000
+      ],
+      [
+        42,
+        5000
+      ],
+      [
+        43,
+        3000
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "HarveyRoom",
+      "Tile": {
+        "X": 13,
+        "Y": 4
+      },
+      "Direction": "right"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Harvey_Winter",
+      "Sprite": "Characters/Harvey_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 31,
+  "KissSpriteFacingRight": false,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 20,
+  "HiddenProfileEmoteFrameCount": 2,
+  "HiddenProfileEmoteFrameDuration": 800,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 11,
+  "CustomFields": null
+}

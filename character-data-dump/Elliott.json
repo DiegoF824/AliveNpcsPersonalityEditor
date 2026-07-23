@@ -1,0 +1,175 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Elliott]",
+  "BirthSeason": "Fall",
+  "BirthDay": 5,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Neutral",
+  "Optimism": "Neutral",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "Leah",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": null,
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 18,
+      "Right": 24,
+      "Top": 9,
+      "Bottom": 18,
+      "IsEmpty": false,
+      "Location": {
+        "X": 18,
+        "Y": 9
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 21,
+        "Y": 13
+      },
+      "X": 18,
+      "Y": 9,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 12,
+      "Right": 16,
+      "Top": 4,
+      "Bottom": 8,
+      "IsEmpty": false,
+      "Location": {
+        "X": 12,
+        "Y": 4
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 14,
+        "Y": 6
+      },
+      "X": 12,
+      "Y": 4,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        33,
+        3000
+      ],
+      [
+        32,
+        500
+      ],
+      [
+        33,
+        3000
+      ],
+      [
+        32,
+        500
+      ],
+      [
+        33,
+        2000
+      ],
+      [
+        34,
+        1500
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Willy": ""
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "ElliottHouse",
+      "Tile": {
+        "X": 1,
+        "Y": 5
+      },
+      "Direction": "up"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Elliott_Winter",
+      "Sprite": "Characters/Elliott_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 35,
+  "KissSpriteFacingRight": false,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 33,
+  "HiddenProfileEmoteFrameCount": 2,
+  "HiddenProfileEmoteFrameDuration": 800,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 5,
+  "CustomFields": null
+}

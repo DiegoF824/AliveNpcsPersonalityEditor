@@ -1,0 +1,123 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Krobus]",
+  "BirthSeason": "Winter",
+  "BirthDay": 1,
+  "HomeRegion": "Other",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Shy",
+  "Optimism": "Neutral",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": false,
+  "LoveInterest": "",
+  "Calendar": "HiddenUntilMet",
+  "SocialTab": "HiddenUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "FALSE",
+  "IntroductionsQuest": false,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "TrailingGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 12,
+      "Right": 18,
+      "Top": 18,
+      "Bottom": 27,
+      "IsEmpty": false,
+      "Location": {
+        "X": 12,
+        "Y": 18
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 15,
+        "Y": 22
+      },
+      "X": 12,
+      "Y": 18,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": null,
+  "SpouseFloors": [],
+  "SpouseWallpapers": [
+    "2",
+    "3",
+    "2",
+    "4"
+  ],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "Sewer",
+      "Tile": {
+        "X": 31,
+        "Y": 17
+      },
+      "Direction": "down"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "MovieTheater",
+      "Condition": "ANY \u0022LOCATION_NAME Target MovieTheater\u0022 \u0022IS_EVENT MovieTheaterScreening\u0022",
+      "Season": null,
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": null,
+      "Sprite": "Characters/Krobus_Trenchcoat",
+      "IsIslandAttire": false,
+      "Precedence": -1000,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 24
+  },
+  "Breather": false,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 16,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 20,
+  "HiddenProfileEmoteFrameCount": 4,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 33,
+  "CustomFields": null
+}

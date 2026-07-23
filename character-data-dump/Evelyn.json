@@ -1,0 +1,118 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Evelyn]",
+  "BirthSeason": "Winter",
+  "BirthDay": 20,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": false,
+  "LoveInterest": "George",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "FALSE",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": null,
+  "SpousePatio": null,
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "George": "[LocalizedText Strings\\Characters:Relative_Husband]",
+    "Alex": "[LocalizedText Strings\\Characters:Relative_Grandson]"
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [
+    {
+      "Condition": null,
+      "Id": "Cookies",
+      "ItemId": "(O)223",
+      "RandomItemId": null,
+      "MaxItems": null,
+      "MinStack": -1,
+      "MaxStack": -1,
+      "Quality": -1,
+      "ObjectInternalName": null,
+      "ObjectDisplayName": null,
+      "ObjectColor": null,
+      "ToolUpgradeLevel": -1,
+      "IsRecipe": false,
+      "StackModifiers": null,
+      "StackModifierMode": "Stack",
+      "QualityModifiers": null,
+      "QualityModifierMode": "Stack",
+      "ModData": null,
+      "PerItemCondition": null
+    }
+  ],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "JoshHouse",
+      "Tile": {
+        "X": 2,
+        "Y": 17
+      },
+      "Direction": "right"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Evelyn_Winter",
+      "Sprite": "Characters/Evelyn_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 20,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 7,
+  "CustomFields": null
+}

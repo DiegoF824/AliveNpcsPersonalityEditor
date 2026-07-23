@@ -1,0 +1,281 @@
+{
+  "DisplayName": "Olivia",
+  "BirthSeason": "Spring",
+  "BirthDay": 15,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Female",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Neutral",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": "True",
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "True",
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": "Custom_OliviasRoom",
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 6,
+      "Top": 0,
+      "Bottom": 9,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 0
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 3,
+        "Y": 4
+      },
+      "X": 0,
+      "Y": 0,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": "Olivia_Spouse_Area",
+    "MapSourceRect": {
+      "Left": 1,
+      "Right": 5,
+      "Top": 0,
+      "Bottom": 4,
+      "IsEmpty": false,
+      "Location": {
+        "X": 1,
+        "Y": 0
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 3,
+        "Y": 2
+      },
+      "X": 1,
+      "Y": 0,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        16,
+        500
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        19,
+        1200
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        16,
+        5400
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        19,
+        1100
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        16,
+        7000
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        19,
+        1200
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        16,
+        1700
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        19,
+        1300
+      ],
+      [
+        17,
+        100
+      ],
+      [
+        18,
+        100
+      ],
+      [
+        16,
+        6000
+      ],
+      [
+        12,
+        800
+      ],
+      [
+        8,
+        3600
+      ],
+      [
+        12,
+        200
+      ],
+      [
+        0,
+        19500
+      ],
+      [
+        12,
+        200
+      ],
+      [
+        8,
+        1900
+      ],
+      [
+        12,
+        800
+      ],
+      [
+        16,
+        700
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "FlashShifter.StardewValleyExpandedCP_JenkinsHouse",
+      "Condition": null,
+      "Location": "Custom_JenkinsHouse",
+      "Tile": {
+        "X": 18,
+        "Y": 5
+      },
+      "Direction": "down"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": "!false",
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Olivia_Winter",
+      "Sprite": "Characters/Olivia_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 0
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": -1,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": -1,
+  "CustomFields": {}
+}

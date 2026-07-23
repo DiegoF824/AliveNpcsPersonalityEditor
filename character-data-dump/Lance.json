@@ -1,0 +1,217 @@
+{
+  "DisplayName": "Lance",
+  "BirthSeason": "Spring",
+  "BirthDay": 8,
+  "HomeRegion": "Other",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Adult",
+  "Manner": "Polite",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "",
+  "Calendar": "HiddenUntilMet",
+  "SocialTab": "HiddenUntilMet",
+  "CanSocialize": "True",
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": "PLAYER_NPC_RELATIONSHIP ANY Lance MARRIED",
+  "IntroductionsQuest": false,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": "Custom_LancesRoom",
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 6,
+      "Top": 0,
+      "Bottom": 9,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 0
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 3,
+        "Y": 4
+      },
+      "X": 0,
+      "Y": 0,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": "Lance_Spouse_Area",
+    "MapSourceRect": {
+      "Left": 0,
+      "Right": 4,
+      "Top": 0,
+      "Bottom": 4,
+      "IsEmpty": false,
+      "Location": {
+        "X": 0,
+        "Y": 0
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 2,
+        "Y": 2
+      },
+      "X": 0,
+      "Y": 0,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        0,
+        1200
+      ],
+      [
+        41,
+        200
+      ],
+      [
+        0,
+        2200
+      ],
+      [
+        41,
+        100
+      ],
+      [
+        0,
+        200
+      ],
+      [
+        41,
+        100
+      ],
+      [
+        0,
+        1600
+      ],
+      [
+        43,
+        1400
+      ],
+      [
+        0,
+        400
+      ],
+      [
+        42,
+        1600
+      ],
+      [
+        0,
+        1800
+      ],
+      [
+        41,
+        200
+      ],
+      [
+        0,
+        1900
+      ],
+      [
+        4,
+        300
+      ],
+      [
+        8,
+        13500
+      ],
+      [
+        4,
+        300
+      ],
+      [
+        0,
+        100
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {},
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": "PLAYER_NPC_RELATIONSHIP ANY Lance MARRIED",
+  "UnlockConditions": "PLAYER_HAS_SEEN_EVENT ANY 6951319",
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "FlashShifter.StardewValleyExpandedCP_Lance_WarpRoom",
+      "Condition": null,
+      "Location": "Custom_Lance_WarpRoom",
+      "Tile": {
+        "X": 3,
+        "Y": 3
+      },
+      "Direction": "down"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "Winter",
+      "Condition": "!false",
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Lance_Winter",
+      "Sprite": "Characters/Lance_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 0
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 28,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": -1,
+  "HiddenProfileEmoteFrameCount": 1,
+  "HiddenProfileEmoteFrameDuration": 200,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": -1,
+  "CustomFields": {}
+}

@@ -1,0 +1,222 @@
+{
+  "DisplayName": "[LocalizedText Strings\\NPCNames:Sam]",
+  "BirthSeason": "Summer",
+  "BirthDay": 17,
+  "HomeRegion": "Town",
+  "Language": "Default",
+  "Gender": "Male",
+  "Age": "Teen",
+  "Manner": "Neutral",
+  "SocialAnxiety": "Outgoing",
+  "Optimism": "Positive",
+  "IsDarkSkinned": false,
+  "CanBeRomanced": true,
+  "LoveInterest": "Penny",
+  "Calendar": "AlwaysShown",
+  "SocialTab": "UnknownUntilMet",
+  "CanSocialize": null,
+  "CanReceiveGifts": true,
+  "CanGreetNearbyCharacters": true,
+  "CanCommentOnPurchasedShopItems": null,
+  "CanVisitIsland": null,
+  "IntroductionsQuest": null,
+  "ItemDeliveryQuests": null,
+  "PerfectionScore": true,
+  "EndSlideShow": "MainGroup",
+  "SpouseAdopts": null,
+  "SpouseWantsChildren": null,
+  "SpouseGiftJealousy": null,
+  "SpouseGiftJealousyFriendshipChange": -30,
+  "SpouseRoom": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 24,
+      "Right": 30,
+      "Top": 9,
+      "Bottom": 18,
+      "IsEmpty": false,
+      "Location": {
+        "X": 24,
+        "Y": 9
+      },
+      "Size": {
+        "X": 6,
+        "Y": 9
+      },
+      "Center": {
+        "X": 27,
+        "Y": 13
+      },
+      "X": 24,
+      "Y": 9,
+      "Width": 6,
+      "Height": 9
+    }
+  },
+  "SpousePatio": {
+    "MapAsset": null,
+    "MapSourceRect": {
+      "Left": 16,
+      "Right": 20,
+      "Top": 4,
+      "Bottom": 8,
+      "IsEmpty": false,
+      "Location": {
+        "X": 16,
+        "Y": 4
+      },
+      "Size": {
+        "X": 4,
+        "Y": 4
+      },
+      "Center": {
+        "X": 18,
+        "Y": 6
+      },
+      "X": 16,
+      "Y": 4,
+      "Width": 4,
+      "Height": 4
+    },
+    "SpriteAnimationFrames": [
+      [
+        25,
+        3000
+      ],
+      [
+        27,
+        500
+      ],
+      [
+        26,
+        100
+      ],
+      [
+        28,
+        100
+      ],
+      [
+        27,
+        500
+      ],
+      [
+        25,
+        2000
+      ],
+      [
+        27,
+        500
+      ],
+      [
+        26,
+        100
+      ],
+      [
+        29,
+        100
+      ],
+      [
+        30,
+        100
+      ],
+      [
+        32,
+        500
+      ],
+      [
+        31,
+        1000
+      ],
+      [
+        30,
+        100
+      ],
+      [
+        29,
+        100
+      ]
+    ],
+    "SpriteAnimationPixelOffset": {
+      "X": 0,
+      "Y": 0
+    }
+  },
+  "SpouseFloors": [],
+  "SpouseWallpapers": [],
+  "DumpsterDiveFriendshipEffect": -25,
+  "DumpsterDiveEmote": null,
+  "FriendsAndFamily": {
+    "Vincent": "[LocalizedText Strings\\Characters:Relative_LittleBrother]",
+    "Jodi": "[LocalizedText Strings\\Characters:Relative_Mom]",
+    "Kent": "[LocalizedText Strings\\Characters:Relative_Dad]",
+    "Sebastian": ""
+  },
+  "FlowerDanceCanDance": null,
+  "WinterStarGifts": [],
+  "WinterStarParticipant": null,
+  "UnlockConditions": null,
+  "SpawnIfMissing": true,
+  "Home": [
+    {
+      "Id": "Default",
+      "Condition": null,
+      "Location": "SamHouse",
+      "Tile": {
+        "X": 22,
+        "Y": 13
+      },
+      "Direction": "right"
+    }
+  ],
+  "TextureName": null,
+  "Appearance": [
+    {
+      "Id": "WorkOutfit",
+      "Condition": "Any \u0022LOCATION_NAME Target JojaMart\u0022 \u0022LOCATION_NAME Target ArchaeologyHouse\u0022",
+      "Season": null,
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Sam_JojaMart",
+      "Sprite": "Characters/Sam_JojaMart",
+      "IsIslandAttire": false,
+      "Precedence": -1000,
+      "Weight": 1
+    },
+    {
+      "Id": "Winter",
+      "Condition": null,
+      "Season": "Winter",
+      "Indoors": true,
+      "Outdoors": true,
+      "Portrait": "Portraits/Sam_Winter",
+      "Sprite": "Characters/Sam_Winter",
+      "IsIslandAttire": false,
+      "Precedence": -100,
+      "Weight": 1
+    }
+  ],
+  "MugShotSourceRect": null,
+  "Size": {
+    "X": 16,
+    "Y": 32
+  },
+  "Breather": true,
+  "BreathChestRect": null,
+  "BreathChestPosition": null,
+  "Shadow": null,
+  "EmoteOffset": {
+    "X": 0,
+    "Y": 0
+  },
+  "ShakePortraits": [],
+  "KissSpriteIndex": 36,
+  "KissSpriteFacingRight": true,
+  "HiddenProfileEmoteSound": null,
+  "HiddenProfileEmoteDuration": -1,
+  "HiddenProfileEmoteStartFrame": 20,
+  "HiddenProfileEmoteFrameCount": 2,
+  "HiddenProfileEmoteFrameDuration": 300,
+  "FormerCharacterNames": [],
+  "FestivalVanillaActorIndex": 26,
+  "CustomFields": null
+}
